@@ -1,0 +1,12 @@
+25-05-17 21:51:07.295 pyfstat INFO    : Running PyFstat version 2.1.0
+25-05-17 21:51:07.526 pyfstat.utils.importing INFO    : No $DISPLAY environment variable found, so importing matplotlib.pyplot with non-interactive 'Agg' backend.
+Start
+Nominal frequency: 500
+Detector: H1L1
+SFT duration (Tsft): 7200 seconds
+Observation time (obsTime): 921600 seconds
+Home directory: /scratch/kriles_root/kriles0/damoncht/unet_f/
+Frequency band size: 256
+Spectrogram size: (256, 128)
+Data generation label: 500HzTD2020Day10Tsft7200n1s4th50
+Save file label: H1L1_500HzTD2020Day10Tsft7200n1s4th50_256x128_MSELoss_dropout0

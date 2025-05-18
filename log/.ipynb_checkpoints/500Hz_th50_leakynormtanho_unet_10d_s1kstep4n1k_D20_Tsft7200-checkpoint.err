@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/gpfs/accounts/kriles_root/kriles0/damoncht/unet_f/train.py", line 96, in <module>
+    signal_dataset = load_signal_dataset_val(data, max_val_levels)
+  File "/gpfs/accounts/kriles_root/kriles0/damoncht/unet_f/utils.py", line 137, in load_signal_dataset_val
+    images = np.concatenate(images_list, axis=0)
+ValueError: need at least one array to concatenate

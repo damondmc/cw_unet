@@ -1,0 +1,5865 @@
+25-05-17 23:06:36.967 pyfstat INFO    : Running PyFstat version 2.1.0
+25-05-17 23:06:37.213 pyfstat.utils.importing INFO    : No $DISPLAY environment variable found, so importing matplotlib.pyplot with non-interactive 'Agg' backend.
+Start
+Nominal frequency: 500
+Detector: H1L1
+SFT duration (Tsft): 7200 seconds
+Observation time (obsTime): 921600 seconds
+Home directory: /scratch/kriles_root/kriles0/damoncht/unet_f/
+Frequency band size: 256
+Spectrogram size: (256, 128)
+Data generation label: 500HzTD2020Day10Tsft7200n1s4th50
+Save file label: H1L1_500HzTD2020Day10Tsft7200n1s4th50_256x128_MSELoss_dropout0
+UNet(
+  (encoder): ModuleList(
+    (0): Sequential(
+      (0): Conv2d(4, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (1): Sequential(
+      (0): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (2): Sequential(
+      (0): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (3): Sequential(
+      (0): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+  )
+  (bottleneck): Sequential(
+    (0): Sequential(
+      (0): Conv2d(128, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (1): Dropout(p=0.0, inplace=False)
+  )
+  (decoder): ModuleList(
+    (0): Sequential(
+      (0): Conv2d(256, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (1): Sequential(
+      (0): Conv2d(128, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (2): Sequential(
+      (0): Conv2d(64, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+    (3): Sequential(
+      (0): Conv2d(32, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.01)
+      (3): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (4): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): LeakyReLU(negative_slope=0.01)
+    )
+  )
+  (up_sample_layer): ModuleList(
+    (0): ConvTranspose2d(256, 128, kernel_size=(2, 2), stride=(2, 2))
+    (1): ConvTranspose2d(128, 64, kernel_size=(2, 2), stride=(2, 2))
+    (2): ConvTranspose2d(64, 32, kernel_size=(2, 2), stride=(2, 2))
+    (3): ConvTranspose2d(32, 16, kernel_size=(2, 2), stride=(2, 2))
+  )
+  (output_layer): Conv2d(16, 4, kernel_size=(1, 1), stride=(1, 1))
+)
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed0_norm.npz
+Loading pure noise ...
+D=20, pdet=1.0%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+Epoch 1/450, Training Loss: 4.910e-02, Validation Loss: 2.332e+03
+Replace best val model at epoch 0
+Replace best pdet model at epoch 0
+the learning rate: 0.0001
+Time used = 45.755107402801514
+Loading pure noise ...
+D=20, pdet=1.0999999999999999%
+Validation:
+D=9, pdet=7.5%
+D=12, pdet=1.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=1.0%
+D=22, pdet=1.5%
+D=35, pdet=1.0%
+Replace best val model at epoch 1
+the learning rate: 0.0001
+Time used = 65.52336168289185
+Loading pure noise ...
+D=20, pdet=0.8%
+Validation:
+D=9, pdet=28.000000000000004%
+D=12, pdet=5.0%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 81.7034022808075
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+Epoch 4/450, Training Loss: 2.786e-03, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 96.50081396102905
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed1_norm.npz
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.5%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 120.8110101222992
+Loading pure noise ...
+D=20, pdet=1.0999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.5%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 135.95897340774536
+Loading pure noise ...
+D=20, pdet=1.0999999999999999%
+Validation:
+D=9, pdet=6.5%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Epoch 7/450, Training Loss: 1.324e-03, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 152.07425713539124
+Loading pure noise ...
+D=20, pdet=0.8999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 166.88806700706482
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed2_norm.npz
+Loading pure noise ...
+D=20, pdet=0.6%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=1.0%
+D=22, pdet=1.5%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 191.08249425888062
+Loading pure noise ...
+D=20, pdet=1.3%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+Epoch 10/450, Training Loss: 8.694e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 206.50307488441467
+Loading pure noise ...
+D=20, pdet=1.2%
+Validation:
+D=9, pdet=45.5%
+D=12, pdet=22.0%
+D=15, pdet=5.5%
+D=18, pdet=1.5%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 220.9861605167389
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=31.0%
+D=12, pdet=9.0%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 240.6182622909546
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed3_norm.npz
+Loading pure noise ...
+D=20, pdet=0.3%
+Validation:
+D=9, pdet=40.0%
+D=12, pdet=17.5%
+D=15, pdet=2.0%
+D=18, pdet=0.5%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Epoch 13/450, Training Loss: 6.235e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 264.62444591522217
+Loading pure noise ...
+D=20, pdet=0.4%
+Validation:
+D=9, pdet=28.999999999999996%
+D=12, pdet=8.5%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 278.366112947464
+Loading pure noise ...
+D=20, pdet=1.2%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 294.89285254478455
+Loading pure noise ...
+D=20, pdet=1.5%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+Epoch 16/450, Training Loss: 5.832e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 308.7843818664551
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed4_norm.npz
+Loading pure noise ...
+D=20, pdet=1.4000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 331.7314567565918
+Loading pure noise ...
+D=20, pdet=0.3%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 345.1883599758148
+Loading pure noise ...
+D=20, pdet=0.6%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+Epoch 19/450, Training Loss: 5.557e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 360.8247694969177
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 375.2960572242737
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed5_norm.npz
+Loading pure noise ...
+D=20, pdet=0.5%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 398.0544445514679
+Loading pure noise ...
+D=20, pdet=0.8%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+Epoch 22/450, Training Loss: 5.356e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 413.4012053012848
+Loading pure noise ...
+D=20, pdet=0.8999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 427.99922943115234
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 442.50978565216064
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed6_norm.npz
+Loading pure noise ...
+D=20, pdet=1.0999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Epoch 25/450, Training Loss: 5.243e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 469.4603524208069
+Loading pure noise ...
+D=20, pdet=1.0999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 483.42363023757935
+Loading pure noise ...
+D=20, pdet=1.0%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 496.82692074775696
+Loading pure noise ...
+D=20, pdet=1.2%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=1.0%
+D=35, pdet=0.5%
+Epoch 28/450, Training Loss: 5.192e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 511.5261871814728
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed7_norm.npz
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 536.444486618042
+Loading pure noise ...
+D=20, pdet=0.3%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 550.1022071838379
+Loading pure noise ...
+D=20, pdet=1.0%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+Epoch 31/450, Training Loss: 5.132e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 563.9218056201935
+Loading pure noise ...
+D=20, pdet=0.8%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 577.67493891716
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed8_norm.npz
+Loading pure noise ...
+D=20, pdet=0.8%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 601.2114789485931
+Loading pure noise ...
+D=20, pdet=1.0999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+Epoch 34/450, Training Loss: 5.135e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 614.8246693611145
+Loading pure noise ...
+D=20, pdet=1.0999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=1.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 628.0201261043549
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=1.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 641.1009058952332
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed9_norm.npz
+Loading pure noise ...
+D=20, pdet=0.3%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Epoch 37/450, Training Loss: 5.157e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 668.9353494644165
+Loading pure noise ...
+D=20, pdet=1.6%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 683.0712857246399
+Loading pure noise ...
+D=20, pdet=0.8999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 696.0843875408173
+Loading pure noise ...
+D=20, pdet=1.6%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Epoch 40/450, Training Loss: 5.149e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 711.2699682712555
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed10_norm.npz
+Loading pure noise ...
+D=20, pdet=1.2%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=1.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 734.9350636005402
+Loading pure noise ...
+D=20, pdet=0.6%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=1.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 748.5656068325043
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Epoch 43/450, Training Loss: 5.094e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 763.2053158283234
+Loading pure noise ...
+D=20, pdet=1.0%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=1.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 776.0983834266663
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed11_norm.npz
+Loading pure noise ...
+D=20, pdet=0.8999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 798.2175703048706
+Loading pure noise ...
+D=20, pdet=1.7000000000000002%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Epoch 46/450, Training Loss: 5.129e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 812.8586654663086
+Loading pure noise ...
+D=20, pdet=1.4000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=1.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 829.0843484401703
+Loading pure noise ...
+D=20, pdet=0.6%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.5%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 842.3426973819733
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed12_norm.npz
+Loading pure noise ...
+D=20, pdet=1.0%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Epoch 49/450, Training Loss: 5.148e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 864.8484568595886
+Loading pure noise ...
+D=20, pdet=1.0999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 877.7110922336578
+Loading pure noise ...
+D=20, pdet=1.4000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 890.5214774608612
+Loading pure noise ...
+D=20, pdet=0.6%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=1.0%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+Epoch 52/450, Training Loss: 5.145e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 903.6427524089813
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed13_norm.npz
+Loading pure noise ...
+D=20, pdet=0.6%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 926.0024938583374
+Loading pure noise ...
+D=20, pdet=0.8999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 939.9600763320923
+Loading pure noise ...
+D=20, pdet=0.5%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+Epoch 55/450, Training Loss: 5.140e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 952.861962556839
+Loading pure noise ...
+D=20, pdet=1.7000000000000002%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 968.1164524555206
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed14_norm.npz
+Loading pure noise ...
+D=20, pdet=1.4000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 990.2345132827759
+Loading pure noise ...
+D=20, pdet=0.4%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=1.5%
+D=22, pdet=0.5%
+D=35, pdet=1.5%
+Epoch 58/450, Training Loss: 5.083e-04, Validation Loss: 2.332e+03
+Replace best pdet model at epoch 57
+the learning rate: 0.0001
+Time used = 1004.5288457870483
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=1.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 1017.4419705867767
+Loading pure noise ...
+D=20, pdet=0.2%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=2.0%
+D=15, pdet=0.5%
+D=18, pdet=1.0%
+D=20, pdet=0.5%
+D=22, pdet=2.0%
+D=35, pdet=1.5%
+the learning rate: 0.0001
+Time used = 1030.1879897117615
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed15_norm.npz
+Loading pure noise ...
+D=20, pdet=0.8999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.5%
+D=18, pdet=0.5%
+D=20, pdet=0.5%
+D=22, pdet=1.5%
+D=35, pdet=1.0%
+Epoch 61/450, Training Loss: 5.177e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1052.9105195999146
+Loading pure noise ...
+D=20, pdet=2.1999999999999997%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=1.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 1069.5046384334564
+Loading pure noise ...
+D=20, pdet=1.5%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=1.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 1082.262021780014
+Loading pure noise ...
+D=20, pdet=1.4000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=1.0%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=1.5%
+D=35, pdet=1.5%
+Epoch 64/450, Training Loss: 5.179e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1095.4490072727203
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed16_norm.npz
+Loading pure noise ...
+D=20, pdet=0.7000000000000001%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.5%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=1.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 1117.5020968914032
+Loading pure noise ...
+D=20, pdet=0.5%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 1130.3720290660858
+Loading pure noise ...
+D=20, pdet=0.8%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.5%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=1.0%
+Epoch 67/450, Training Loss: 5.165e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1143.1482555866241
+Loading pure noise ...
+D=20, pdet=0.8999999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=1.0%
+Replace best val model at epoch 67
+the learning rate: 0.0001
+Time used = 1156.0104451179504
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed17_norm.npz
+Loading pure noise ...
+D=20, pdet=2.0%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=0.5%
+Replace best val model at epoch 68
+the learning rate: 0.0001
+Time used = 1178.4382300376892
+Loading pure noise ...
+D=20, pdet=1.3%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=1.0%
+D=35, pdet=0.5%
+Epoch 70/450, Training Loss: 5.015e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 69
+the learning rate: 0.0001
+Time used = 1192.3395898342133
+Loading pure noise ...
+D=20, pdet=3.5999999999999996%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=1.5%
+Replace best val model at epoch 70
+the learning rate: 0.0001
+Time used = 1205.371298789978
+Loading pure noise ...
+D=20, pdet=4.8%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=1.0%
+D=22, pdet=1.0%
+D=35, pdet=1.0%
+Replace best val model at epoch 71
+the learning rate: 0.0001
+Time used = 1218.683739900589
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed18_norm.npz
+Loading pure noise ...
+D=20, pdet=11.899999999999999%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.5%
+D=15, pdet=0.0%
+D=18, pdet=0.5%
+D=20, pdet=0.5%
+D=22, pdet=0.0%
+D=35, pdet=1.0%
+Epoch 73/450, Training Loss: 5.007e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 72
+the learning rate: 0.0001
+Time used = 1240.473580121994
+Loading pure noise ...
+D=20, pdet=8.4%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.0%
+D=22, pdet=0.0%
+D=35, pdet=1.0%
+Replace best val model at epoch 73
+the learning rate: 0.0001
+Time used = 1253.2750129699707
+Loading pure noise ...
+D=20, pdet=24.7%
+Validation:
+D=9, pdet=0.0%
+D=12, pdet=0.0%
+D=15, pdet=0.0%
+D=18, pdet=0.0%
+D=20, pdet=0.5%
+D=22, pdet=0.5%
+D=35, pdet=1.0%
+Replace best val model at epoch 74
+the learning rate: 0.0001
+Time used = 1266.0570855140686
+Loading pure noise ...
+D=20, pdet=19.900000000000002%
+Validation:
+D=9, pdet=1.0%
+D=12, pdet=1.0%
+D=15, pdet=1.0%
+D=18, pdet=1.5%
+D=20, pdet=1.5%
+D=22, pdet=2.5%
+D=35, pdet=1.0%
+Epoch 76/450, Training Loss: 4.876e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 75
+the learning rate: 0.0001
+Time used = 1278.8735411167145
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed19_norm.npz
+Loading pure noise ...
+D=20, pdet=38.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=91.0%
+D=15, pdet=74.0%
+D=18, pdet=59.0%
+D=20, pdet=46.0%
+D=22, pdet=40.0%
+D=35, pdet=5.5%
+Replace best val model at epoch 76
+Replace best pdet model at epoch 76
+the learning rate: 0.0001
+Time used = 1300.7553062438965
+Loading pure noise ...
+D=20, pdet=28.9%
+Validation:
+D=9, pdet=84.5%
+D=12, pdet=77.0%
+D=15, pdet=56.99999999999999%
+D=18, pdet=44.5%
+D=20, pdet=39.0%
+D=22, pdet=28.499999999999996%
+D=35, pdet=2.0%
+Replace best val model at epoch 77
+the learning rate: 0.0001
+Time used = 1314.8935511112213
+Loading pure noise ...
+D=20, pdet=47.5%
+Validation:
+D=9, pdet=98.5%
+D=12, pdet=97.0%
+D=15, pdet=84.5%
+D=18, pdet=64.0%
+D=20, pdet=53.5%
+D=22, pdet=50.5%
+D=35, pdet=8.5%
+Epoch 79/450, Training Loss: 4.772e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 78
+Replace best pdet model at epoch 78
+the learning rate: 0.0001
+Time used = 1328.7908735275269
+Loading pure noise ...
+D=20, pdet=53.800000000000004%
+Validation:
+D=9, pdet=98.5%
+D=12, pdet=95.0%
+D=15, pdet=77.5%
+D=18, pdet=63.0%
+D=20, pdet=56.49999999999999%
+D=22, pdet=47.5%
+D=35, pdet=11.0%
+Replace best val model at epoch 79
+Replace best pdet model at epoch 79
+the learning rate: 0.0001
+Time used = 1341.5463416576385
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed20_norm.npz
+Loading pure noise ...
+D=20, pdet=51.0%
+Validation:
+D=9, pdet=99.5%
+D=12, pdet=97.5%
+D=15, pdet=85.5%
+D=18, pdet=66.0%
+D=20, pdet=57.49999999999999%
+D=22, pdet=51.0%
+D=35, pdet=8.5%
+the learning rate: 0.0001
+Time used = 1363.9812896251678
+Loading pure noise ...
+D=20, pdet=56.49999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=84.5%
+D=18, pdet=65.0%
+D=20, pdet=56.99999999999999%
+D=22, pdet=50.5%
+D=35, pdet=10.5%
+Epoch 82/450, Training Loss: 4.695e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 81
+the learning rate: 0.0001
+Time used = 1376.9293463230133
+Loading pure noise ...
+D=20, pdet=57.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.5%
+D=15, pdet=85.5%
+D=18, pdet=67.0%
+D=20, pdet=58.5%
+D=22, pdet=52.0%
+D=35, pdet=11.5%
+Replace best val model at epoch 82
+Replace best pdet model at epoch 82
+the learning rate: 0.0001
+Time used = 1390.2251222133636
+Loading pure noise ...
+D=20, pdet=58.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.0%
+D=15, pdet=81.5%
+D=18, pdet=64.0%
+D=20, pdet=53.0%
+D=22, pdet=50.0%
+D=35, pdet=10.5%
+Replace best val model at epoch 83
+the learning rate: 0.0001
+Time used = 1403.2402894496918
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed21_norm.npz
+Loading pure noise ...
+D=20, pdet=54.900000000000006%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=87.0%
+D=18, pdet=67.0%
+D=20, pdet=60.5%
+D=22, pdet=50.0%
+D=35, pdet=14.499999999999998%
+Epoch 85/450, Training Loss: 4.542e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 84
+Replace best pdet model at epoch 84
+the learning rate: 0.0001
+Time used = 1425.1402792930603
+Loading pure noise ...
+D=20, pdet=59.599999999999994%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=84.0%
+D=18, pdet=66.0%
+D=20, pdet=57.99999999999999%
+D=22, pdet=50.5%
+D=35, pdet=12.5%
+the learning rate: 0.0001
+Time used = 1437.952525138855
+Loading pure noise ...
+D=20, pdet=57.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=85.5%
+D=18, pdet=67.5%
+D=20, pdet=59.5%
+D=22, pdet=51.0%
+D=35, pdet=15.0%
+Replace best val model at epoch 86
+Replace best pdet model at epoch 86
+the learning rate: 0.0001
+Time used = 1450.8045258522034
+Loading pure noise ...
+D=20, pdet=60.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.5%
+D=15, pdet=83.0%
+D=18, pdet=67.5%
+D=20, pdet=60.0%
+D=22, pdet=51.0%
+D=35, pdet=14.000000000000002%
+Epoch 88/450, Training Loss: 4.423e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 87
+the learning rate: 0.0001
+Time used = 1463.657428264618
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed22_norm.npz
+Loading pure noise ...
+D=20, pdet=54.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=69.0%
+D=20, pdet=59.5%
+D=22, pdet=52.5%
+D=35, pdet=13.5%
+the learning rate: 0.0001
+Time used = 1485.7469804286957
+Loading pure noise ...
+D=20, pdet=61.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=87.0%
+D=18, pdet=68.0%
+D=20, pdet=58.5%
+D=22, pdet=50.5%
+D=35, pdet=13.5%
+Replace best val model at epoch 89
+the learning rate: 0.0001
+Time used = 1500.3256795406342
+Loading pure noise ...
+D=20, pdet=64.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=87.0%
+D=18, pdet=69.5%
+D=20, pdet=58.5%
+D=22, pdet=50.0%
+D=35, pdet=13.0%
+Epoch 91/450, Training Loss: 4.441e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 90
+the learning rate: 0.0001
+Time used = 1513.3966178894043
+Loading pure noise ...
+D=20, pdet=66.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=89.0%
+D=18, pdet=68.5%
+D=20, pdet=60.5%
+D=22, pdet=52.0%
+D=35, pdet=12.5%
+Replace best val model at epoch 91
+the learning rate: 0.0001
+Time used = 1526.3669526576996
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed23_norm.npz
+Loading pure noise ...
+D=20, pdet=58.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.0%
+D=18, pdet=70.5%
+D=20, pdet=59.5%
+D=22, pdet=53.5%
+D=35, pdet=14.499999999999998%
+Replace best val model at epoch 92
+the learning rate: 0.0001
+Time used = 1548.3729677200317
+Loading pure noise ...
+D=20, pdet=61.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.0%
+D=18, pdet=67.5%
+D=20, pdet=60.0%
+D=22, pdet=51.5%
+D=35, pdet=13.0%
+Epoch 94/450, Training Loss: 4.380e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 93
+the learning rate: 0.0001
+Time used = 1561.3049397468567
+Loading pure noise ...
+D=20, pdet=65.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=69.5%
+D=20, pdet=57.99999999999999%
+D=22, pdet=55.00000000000001%
+D=35, pdet=13.5%
+Replace best val model at epoch 94
+the learning rate: 0.0001
+Time used = 1574.2740426063538
+Loading pure noise ...
+D=20, pdet=66.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.0%
+D=18, pdet=71.0%
+D=20, pdet=58.5%
+D=22, pdet=54.50000000000001%
+D=35, pdet=13.0%
+Replace best val model at epoch 95
+the learning rate: 0.0001
+Time used = 1587.2805926799774
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed24_norm.npz
+Loading pure noise ...
+D=20, pdet=57.99999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=68.5%
+D=20, pdet=60.0%
+D=22, pdet=53.0%
+D=35, pdet=15.0%
+Epoch 97/450, Training Loss: 4.302e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1609.3034660816193
+Loading pure noise ...
+D=20, pdet=62.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=70.5%
+D=20, pdet=61.0%
+D=22, pdet=53.0%
+D=35, pdet=12.5%
+the learning rate: 0.0001
+Time used = 1622.043242931366
+Loading pure noise ...
+D=20, pdet=66.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.0%
+D=18, pdet=71.0%
+D=20, pdet=62.5%
+D=22, pdet=54.50000000000001%
+D=35, pdet=16.0%
+Replace best val model at epoch 98
+Replace best pdet model at epoch 98
+the learning rate: 0.0001
+Time used = 1635.5499606132507
+Loading pure noise ...
+D=20, pdet=68.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=71.0%
+D=20, pdet=62.0%
+D=22, pdet=53.0%
+D=35, pdet=13.5%
+Epoch 100/450, Training Loss: 4.186e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 99
+the learning rate: 0.0001
+Time used = 1648.530333518982
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed25_norm.npz
+Loading pure noise ...
+D=20, pdet=57.099999999999994%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=88.0%
+D=18, pdet=68.5%
+D=20, pdet=59.0%
+D=22, pdet=52.5%
+D=35, pdet=14.000000000000002%
+Replace best val model at epoch 100
+the learning rate: 0.0001
+Time used = 1671.3376197814941
+Loading pure noise ...
+D=20, pdet=64.1%
+Validation:
+D=9, pdet=88.0%
+D=12, pdet=54.50000000000001%
+D=15, pdet=36.5%
+D=18, pdet=24.5%
+D=20, pdet=10.0%
+D=22, pdet=11.0%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 1686.058045387268
+Loading pure noise ...
+D=20, pdet=65.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=87.5%
+D=18, pdet=68.5%
+D=20, pdet=58.5%
+D=22, pdet=51.5%
+D=35, pdet=10.5%
+Epoch 103/450, Training Loss: 4.235e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1700.2100841999054
+Loading pure noise ...
+D=20, pdet=69.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=69.0%
+D=20, pdet=62.5%
+D=22, pdet=55.00000000000001%
+D=35, pdet=14.000000000000002%
+Replace best val model at epoch 103
+the learning rate: 0.0001
+Time used = 1713.7098774909973
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed26_norm.npz
+Loading pure noise ...
+D=20, pdet=62.1%
+Validation:
+D=9, pdet=95.5%
+D=12, pdet=68.0%
+D=15, pdet=52.5%
+D=18, pdet=37.5%
+D=20, pdet=26.5%
+D=22, pdet=19.5%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 1735.3545463085175
+Loading pure noise ...
+D=20, pdet=63.9%
+Validation:
+D=9, pdet=87.0%
+D=12, pdet=55.00000000000001%
+D=15, pdet=34.5%
+D=18, pdet=21.0%
+D=20, pdet=10.5%
+D=22, pdet=6.5%
+D=35, pdet=0.0%
+Epoch 106/450, Training Loss: 4.192e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1748.0920584201813
+Loading pure noise ...
+D=20, pdet=67.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=73.5%
+D=20, pdet=60.5%
+D=22, pdet=54.50000000000001%
+D=35, pdet=15.5%
+the learning rate: 0.0001
+Time used = 1761.6295495033264
+Loading pure noise ...
+D=20, pdet=68.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=72.5%
+D=20, pdet=61.5%
+D=22, pdet=54.50000000000001%
+D=35, pdet=16.5%
+Replace best val model at epoch 107
+Replace best pdet model at epoch 107
+the learning rate: 0.0001
+Time used = 1774.3915226459503
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed27_norm.npz
+Loading pure noise ...
+D=20, pdet=60.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=82.0%
+D=18, pdet=61.5%
+D=20, pdet=51.5%
+D=22, pdet=47.0%
+D=35, pdet=6.0%
+Epoch 109/450, Training Loss: 4.249e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1800.6854474544525
+Loading pure noise ...
+D=20, pdet=65.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=84.5%
+D=18, pdet=64.5%
+D=20, pdet=56.00000000000001%
+D=22, pdet=51.0%
+D=35, pdet=9.0%
+the learning rate: 0.0001
+Time used = 1813.6271743774414
+Loading pure noise ...
+D=20, pdet=68.30000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.5%
+D=15, pdet=78.0%
+D=18, pdet=63.5%
+D=20, pdet=52.5%
+D=22, pdet=46.5%
+D=35, pdet=6.0%
+the learning rate: 0.0001
+Time used = 1826.3639521598816
+Loading pure noise ...
+D=20, pdet=72.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=85.5%
+D=15, pdet=63.0%
+D=18, pdet=49.0%
+D=20, pdet=40.5%
+D=22, pdet=34.5%
+D=35, pdet=1.0%
+Epoch 112/450, Training Loss: 4.106e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1839.0350759029388
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed28_norm.npz
+Loading pure noise ...
+D=20, pdet=64.9%
+Validation:
+D=9, pdet=87.0%
+D=12, pdet=55.00000000000001%
+D=15, pdet=34.5%
+D=18, pdet=23.0%
+D=20, pdet=9.5%
+D=22, pdet=9.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 1860.851746559143
+Loading pure noise ...
+D=20, pdet=69.1%
+Validation:
+D=9, pdet=99.0%
+D=12, pdet=74.5%
+D=15, pdet=56.49999999999999%
+D=18, pdet=45.5%
+D=20, pdet=34.0%
+D=22, pdet=26.0%
+D=35, pdet=0.0%
+Replace best val model at epoch 113
+the learning rate: 0.0001
+Time used = 1873.7406690120697
+Loading pure noise ...
+D=20, pdet=72.3%
+Validation:
+D=9, pdet=84.0%
+D=12, pdet=51.0%
+D=15, pdet=31.5%
+D=18, pdet=21.0%
+D=20, pdet=8.5%
+D=22, pdet=9.0%
+D=35, pdet=0.5%
+Epoch 115/450, Training Loss: 3.998e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1886.7020831108093
+Loading pure noise ...
+D=20, pdet=72.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=69.0%
+D=20, pdet=59.0%
+D=22, pdet=53.0%
+D=35, pdet=10.0%
+the learning rate: 0.0001
+Time used = 1899.8137769699097
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed29_norm.npz
+Loading pure noise ...
+D=20, pdet=58.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.0%
+D=18, pdet=70.0%
+D=20, pdet=61.5%
+D=22, pdet=55.00000000000001%
+D=35, pdet=14.000000000000002%
+Replace best val model at epoch 116
+the learning rate: 0.0001
+Time used = 1921.872807264328
+Loading pure noise ...
+D=20, pdet=65.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=85.0%
+D=18, pdet=65.5%
+D=20, pdet=54.50000000000001%
+D=22, pdet=51.5%
+D=35, pdet=10.0%
+Epoch 118/450, Training Loss: 4.076e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1934.8693351745605
+Loading pure noise ...
+D=20, pdet=69.89999999999999%
+Validation:
+D=9, pdet=99.5%
+D=12, pdet=85.0%
+D=15, pdet=64.0%
+D=18, pdet=51.0%
+D=20, pdet=43.5%
+D=22, pdet=35.0%
+D=35, pdet=1.0%
+Replace best val model at epoch 118
+the learning rate: 0.0001
+Time used = 1947.5659775733948
+Loading pure noise ...
+D=20, pdet=70.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=93.5%
+D=15, pdet=69.5%
+D=18, pdet=57.99999999999999%
+D=20, pdet=48.0%
+D=22, pdet=41.0%
+D=35, pdet=1.5%
+Replace best val model at epoch 119
+the learning rate: 0.0001
+Time used = 1961.3310735225677
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed30_norm.npz
+Loading pure noise ...
+D=20, pdet=63.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.0%
+D=18, pdet=72.5%
+D=20, pdet=63.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=15.5%
+Epoch 121/450, Training Loss: 4.054e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 1982.8477714061737
+Loading pure noise ...
+D=20, pdet=68.4%
+Validation:
+D=9, pdet=87.5%
+D=12, pdet=55.00000000000001%
+D=15, pdet=34.5%
+D=18, pdet=21.5%
+D=20, pdet=10.0%
+D=22, pdet=10.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 1995.6710228919983
+Loading pure noise ...
+D=20, pdet=71.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=72.0%
+D=20, pdet=62.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=14.499999999999998%
+the learning rate: 0.0001
+Time used = 2008.5529854297638
+Loading pure noise ...
+D=20, pdet=72.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.0%
+D=18, pdet=69.0%
+D=20, pdet=59.0%
+D=22, pdet=53.0%
+D=35, pdet=11.0%
+Epoch 124/450, Training Loss: 3.912e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2022.3770809173584
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed31_norm.npz
+Loading pure noise ...
+D=20, pdet=66.10000000000001%
+Validation:
+D=9, pdet=98.0%
+D=12, pdet=71.5%
+D=15, pdet=55.50000000000001%
+D=18, pdet=42.0%
+D=20, pdet=33.5%
+D=22, pdet=26.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 2044.1303894519806
+Loading pure noise ...
+D=20, pdet=73.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.0%
+D=18, pdet=68.0%
+D=20, pdet=57.99999999999999%
+D=22, pdet=54.0%
+D=35, pdet=12.5%
+Replace best val model at epoch 125
+the learning rate: 0.0001
+Time used = 2057.2476091384888
+Loading pure noise ...
+D=20, pdet=74.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=86.5%
+D=18, pdet=69.5%
+D=20, pdet=58.5%
+D=22, pdet=53.5%
+D=35, pdet=13.0%
+Epoch 127/450, Training Loss: 3.923e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 126
+the learning rate: 0.0001
+Time used = 2070.111070871353
+Loading pure noise ...
+D=20, pdet=77.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.0%
+D=15, pdet=75.0%
+D=18, pdet=62.0%
+D=20, pdet=50.5%
+D=22, pdet=46.0%
+D=35, pdet=5.5%
+Replace best val model at epoch 127
+the learning rate: 0.0001
+Time used = 2083.360071659088
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed32_norm.npz
+Loading pure noise ...
+D=20, pdet=61.0%
+Validation:
+D=9, pdet=88.0%
+D=12, pdet=56.99999999999999%
+D=15, pdet=38.0%
+D=18, pdet=24.5%
+D=20, pdet=12.5%
+D=22, pdet=11.5%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 2105.297787666321
+Loading pure noise ...
+D=20, pdet=67.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=84.5%
+D=15, pdet=64.0%
+D=18, pdet=52.5%
+D=20, pdet=43.0%
+D=22, pdet=35.5%
+D=35, pdet=1.5%
+Epoch 130/450, Training Loss: 4.071e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 129
+the learning rate: 0.0001
+Time used = 2118.120778799057
+Loading pure noise ...
+D=20, pdet=69.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=82.5%
+D=18, pdet=67.5%
+D=20, pdet=57.49999999999999%
+D=22, pdet=51.5%
+D=35, pdet=13.0%
+Replace best val model at epoch 130
+the learning rate: 0.0001
+Time used = 2132.7962589263916
+Loading pure noise ...
+D=20, pdet=71.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=79.5%
+D=18, pdet=65.0%
+D=20, pdet=53.5%
+D=22, pdet=49.0%
+D=35, pdet=9.5%
+Replace best val model at epoch 131
+the learning rate: 0.0001
+Time used = 2146.4547646045685
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed33_norm.npz
+Loading pure noise ...
+D=20, pdet=61.199999999999996%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.0%
+D=18, pdet=68.5%
+D=20, pdet=58.5%
+D=22, pdet=54.50000000000001%
+D=35, pdet=15.0%
+Epoch 133/450, Training Loss: 4.062e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2168.5371062755585
+Loading pure noise ...
+D=20, pdet=68.60000000000001%
+Validation:
+D=9, pdet=85.5%
+D=12, pdet=50.5%
+D=15, pdet=31.0%
+D=18, pdet=18.5%
+D=20, pdet=8.5%
+D=22, pdet=5.0%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 2181.458390235901
+Loading pure noise ...
+D=20, pdet=72.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.0%
+D=18, pdet=69.5%
+D=20, pdet=59.5%
+D=22, pdet=54.0%
+D=35, pdet=15.0%
+the learning rate: 0.0001
+Time used = 2196.0292522907257
+Loading pure noise ...
+D=20, pdet=73.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.0%
+D=18, pdet=69.5%
+D=20, pdet=58.5%
+D=22, pdet=54.0%
+D=35, pdet=13.5%
+Epoch 136/450, Training Loss: 3.884e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 135
+the learning rate: 0.0001
+Time used = 2209.194051027298
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed34_norm.npz
+Loading pure noise ...
+D=20, pdet=65.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=71.5%
+D=20, pdet=62.0%
+D=22, pdet=54.50000000000001%
+D=35, pdet=17.0%
+Replace best pdet model at epoch 136
+the learning rate: 0.0001
+Time used = 2231.533052444458
+Loading pure noise ...
+D=20, pdet=70.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=71.0%
+D=20, pdet=60.5%
+D=22, pdet=55.00000000000001%
+D=35, pdet=15.5%
+the learning rate: 0.0001
+Time used = 2244.3419559001923
+Loading pure noise ...
+D=20, pdet=69.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=88.0%
+D=18, pdet=71.0%
+D=20, pdet=61.0%
+D=22, pdet=54.0%
+D=35, pdet=14.499999999999998%
+Epoch 139/450, Training Loss: 3.747e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2257.333906650543
+Loading pure noise ...
+D=20, pdet=73.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=85.0%
+D=18, pdet=68.5%
+D=20, pdet=59.5%
+D=22, pdet=53.0%
+D=35, pdet=12.5%
+Replace best val model at epoch 139
+the learning rate: 0.0001
+Time used = 2273.7140684127808
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed35_norm.npz
+Loading pure noise ...
+D=20, pdet=67.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=72.5%
+D=20, pdet=61.5%
+D=22, pdet=54.0%
+D=35, pdet=15.5%
+the learning rate: 0.0001
+Time used = 2295.9587745666504
+Loading pure noise ...
+D=20, pdet=73.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=75.0%
+D=20, pdet=65.5%
+D=22, pdet=55.50000000000001%
+D=35, pdet=16.5%
+Epoch 142/450, Training Loss: 3.899e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2308.6361107826233
+Loading pure noise ...
+D=20, pdet=75.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=89.0%
+D=18, pdet=70.0%
+D=20, pdet=59.0%
+D=22, pdet=54.0%
+D=35, pdet=15.0%
+Replace best val model at epoch 142
+the learning rate: 0.0001
+Time used = 2321.6551797389984
+Loading pure noise ...
+D=20, pdet=77.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=87.0%
+D=18, pdet=69.5%
+D=20, pdet=60.5%
+D=22, pdet=52.0%
+D=35, pdet=14.000000000000002%
+Replace best val model at epoch 143
+the learning rate: 0.0001
+Time used = 2334.6042580604553
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed36_norm.npz
+Loading pure noise ...
+D=20, pdet=68.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=84.0%
+D=18, pdet=67.5%
+D=20, pdet=54.50000000000001%
+D=22, pdet=49.5%
+D=35, pdet=9.5%
+Epoch 145/450, Training Loss: 3.962e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2356.8480508327484
+Loading pure noise ...
+D=20, pdet=73.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=77.0%
+D=15, pdet=58.5%
+D=18, pdet=47.5%
+D=20, pdet=39.0%
+D=22, pdet=27.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 2369.7127792835236
+Loading pure noise ...
+D=20, pdet=76.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=87.0%
+D=18, pdet=70.0%
+D=20, pdet=59.0%
+D=22, pdet=53.0%
+D=35, pdet=15.0%
+the learning rate: 0.0001
+Time used = 2382.858086824417
+Loading pure noise ...
+D=20, pdet=77.9%
+Validation:
+D=9, pdet=91.5%
+D=12, pdet=62.0%
+D=15, pdet=45.0%
+D=18, pdet=32.5%
+D=20, pdet=20.0%
+D=22, pdet=16.0%
+D=35, pdet=0.5%
+Epoch 148/450, Training Loss: 3.768e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2397.481506586075
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed37_norm.npz
+Loading pure noise ...
+D=20, pdet=62.7%
+Validation:
+D=9, pdet=94.0%
+D=12, pdet=61.5%
+D=15, pdet=48.0%
+D=18, pdet=34.5%
+D=20, pdet=22.0%
+D=22, pdet=19.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 2419.3014855384827
+Loading pure noise ...
+D=20, pdet=70.0%
+Validation:
+D=9, pdet=95.0%
+D=12, pdet=63.0%
+D=15, pdet=50.0%
+D=18, pdet=35.5%
+D=20, pdet=23.0%
+D=22, pdet=18.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 2432.0577521324158
+Loading pure noise ...
+D=20, pdet=71.8%
+Validation:
+D=9, pdet=86.0%
+D=12, pdet=53.5%
+D=15, pdet=34.5%
+D=18, pdet=21.0%
+D=20, pdet=10.0%
+D=22, pdet=11.0%
+D=35, pdet=0.0%
+Epoch 151/450, Training Loss: 3.816e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2445.1521232128143
+Loading pure noise ...
+D=20, pdet=75.0%
+Validation:
+D=9, pdet=96.5%
+D=12, pdet=67.0%
+D=15, pdet=53.5%
+D=18, pdet=39.0%
+D=20, pdet=27.0%
+D=22, pdet=20.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 2459.5651364326477
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed38_norm.npz
+Loading pure noise ...
+D=20, pdet=64.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=81.5%
+D=18, pdet=67.0%
+D=20, pdet=52.5%
+D=22, pdet=48.5%
+D=35, pdet=6.5%
+the learning rate: 0.0001
+Time used = 2481.7050569057465
+Loading pure noise ...
+D=20, pdet=69.6%
+Validation:
+D=9, pdet=95.5%
+D=12, pdet=64.0%
+D=15, pdet=49.0%
+D=18, pdet=33.5%
+D=20, pdet=22.5%
+D=22, pdet=17.0%
+D=35, pdet=0.5%
+Epoch 154/450, Training Loss: 3.909e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2494.7630910873413
+Loading pure noise ...
+D=20, pdet=71.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.0%
+D=18, pdet=73.0%
+D=20, pdet=62.0%
+D=22, pdet=54.50000000000001%
+D=35, pdet=16.5%
+Replace best val model at epoch 154
+the learning rate: 0.0001
+Time used = 2507.9444019794464
+Loading pure noise ...
+D=20, pdet=74.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=94.5%
+D=15, pdet=70.0%
+D=18, pdet=57.49999999999999%
+D=20, pdet=47.0%
+D=22, pdet=43.0%
+D=35, pdet=3.0%
+Replace best val model at epoch 155
+the learning rate: 0.0001
+Time used = 2520.748165845871
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed39_norm.npz
+Loading pure noise ...
+D=20, pdet=65.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=72.0%
+D=20, pdet=62.5%
+D=22, pdet=55.00000000000001%
+D=35, pdet=17.0%
+Epoch 157/450, Training Loss: 3.954e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 156
+the learning rate: 0.0001
+Time used = 2542.991720676422
+Loading pure noise ...
+D=20, pdet=75.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=73.5%
+D=15, pdet=56.49999999999999%
+D=18, pdet=43.5%
+D=20, pdet=34.5%
+D=22, pdet=24.5%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 2556.1691522598267
+Loading pure noise ...
+D=20, pdet=75.5%
+Validation:
+D=9, pdet=99.5%
+D=12, pdet=73.0%
+D=15, pdet=56.99999999999999%
+D=18, pdet=44.0%
+D=20, pdet=35.0%
+D=22, pdet=28.999999999999996%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 2569.0103788375854
+Loading pure noise ...
+D=20, pdet=76.2%
+Validation:
+D=9, pdet=87.0%
+D=12, pdet=55.00000000000001%
+D=15, pdet=36.5%
+D=18, pdet=21.0%
+D=20, pdet=12.0%
+D=22, pdet=10.5%
+D=35, pdet=0.0%
+Epoch 160/450, Training Loss: 3.748e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2582.012004852295
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed40_norm.npz
+Loading pure noise ...
+D=20, pdet=63.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=95.0%
+D=15, pdet=73.5%
+D=18, pdet=61.0%
+D=20, pdet=50.0%
+D=22, pdet=42.5%
+D=35, pdet=5.0%
+the learning rate: 0.0001
+Time used = 2603.974970817566
+Loading pure noise ...
+D=20, pdet=58.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.0%
+D=18, pdet=73.0%
+D=20, pdet=62.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=18.5%
+Replace best val model at epoch 161
+Replace best pdet model at epoch 161
+the learning rate: 0.0001
+Time used = 2617.8358447551727
+Loading pure noise ...
+D=20, pdet=72.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.0%
+D=18, pdet=74.5%
+D=20, pdet=62.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=16.5%
+Epoch 163/450, Training Loss: 3.801e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 162
+the learning rate: 0.0001
+Time used = 2631.2255516052246
+Loading pure noise ...
+D=20, pdet=73.7%
+Validation:
+D=9, pdet=99.5%
+D=12, pdet=72.5%
+D=15, pdet=55.50000000000001%
+D=18, pdet=42.5%
+D=20, pdet=34.0%
+D=22, pdet=27.0%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 2644.620030403137
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed41_norm.npz
+Loading pure noise ...
+D=20, pdet=68.10000000000001%
+Validation:
+D=9, pdet=86.5%
+D=12, pdet=54.0%
+D=15, pdet=31.5%
+D=18, pdet=21.0%
+D=20, pdet=9.0%
+D=22, pdet=9.0%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 2666.879668235779
+Loading pure noise ...
+D=20, pdet=71.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=71.0%
+D=20, pdet=60.0%
+D=22, pdet=55.50000000000001%
+D=35, pdet=16.0%
+Epoch 166/450, Training Loss: 3.779e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2679.990193128586
+Loading pure noise ...
+D=20, pdet=75.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.5%
+D=18, pdet=72.0%
+D=20, pdet=63.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=16.5%
+the learning rate: 0.0001
+Time used = 2693.023315191269
+Loading pure noise ...
+D=20, pdet=78.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=78.0%
+D=15, pdet=61.0%
+D=18, pdet=48.0%
+D=20, pdet=39.5%
+D=22, pdet=31.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 2707.8907458782196
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed42_norm.npz
+Loading pure noise ...
+D=20, pdet=65.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.5%
+D=18, pdet=70.5%
+D=20, pdet=59.5%
+D=22, pdet=55.00000000000001%
+D=35, pdet=15.5%
+Epoch 169/450, Training Loss: 3.902e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 168
+the learning rate: 0.0001
+Time used = 2729.869159936905
+Loading pure noise ...
+D=20, pdet=72.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=70.5%
+D=20, pdet=61.5%
+D=22, pdet=55.50000000000001%
+D=35, pdet=16.5%
+the learning rate: 0.0001
+Time used = 2742.6277389526367
+Loading pure noise ...
+D=20, pdet=76.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.0%
+D=18, pdet=74.5%
+D=20, pdet=64.0%
+D=22, pdet=56.99999999999999%
+D=35, pdet=18.0%
+the learning rate: 0.0001
+Time used = 2756.6964526176453
+Loading pure noise ...
+D=20, pdet=78.3%
+Validation:
+D=9, pdet=88.5%
+D=12, pdet=56.99999999999999%
+D=15, pdet=38.0%
+D=18, pdet=25.5%
+D=20, pdet=12.0%
+D=22, pdet=12.5%
+D=35, pdet=0.0%
+Epoch 172/450, Training Loss: 3.687e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 171
+the learning rate: 0.0001
+Time used = 2769.3740332126617
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed43_norm.npz
+Loading pure noise ...
+D=20, pdet=64.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=83.5%
+D=18, pdet=68.0%
+D=20, pdet=54.50000000000001%
+D=22, pdet=50.5%
+D=35, pdet=11.5%
+the learning rate: 0.0001
+Time used = 2791.0683460235596
+Loading pure noise ...
+D=20, pdet=59.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=87.0%
+D=18, pdet=69.5%
+D=20, pdet=55.50000000000001%
+D=22, pdet=52.0%
+D=35, pdet=11.5%
+the learning rate: 0.0001
+Time used = 2803.9110853672028
+Loading pure noise ...
+D=20, pdet=72.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=75.5%
+D=20, pdet=63.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=18.0%
+Epoch 175/450, Training Loss: 3.761e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2817.944706916809
+Loading pure noise ...
+D=20, pdet=75.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=87.0%
+D=18, pdet=69.5%
+D=20, pdet=56.00000000000001%
+D=22, pdet=52.0%
+D=35, pdet=11.5%
+the learning rate: 0.0001
+Time used = 2831.44806432724
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed44_norm.npz
+Loading pure noise ...
+D=20, pdet=65.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=75.0%
+D=20, pdet=64.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=18.0%
+the learning rate: 0.0001
+Time used = 2853.4507100582123
+Loading pure noise ...
+D=20, pdet=71.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=94.0%
+D=15, pdet=72.5%
+D=18, pdet=59.5%
+D=20, pdet=48.5%
+D=22, pdet=45.0%
+D=35, pdet=5.0%
+Epoch 178/450, Training Loss: 3.700e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2874.432283639908
+Loading pure noise ...
+D=20, pdet=76.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.0%
+D=18, pdet=75.5%
+D=20, pdet=64.0%
+D=22, pdet=56.99999999999999%
+D=35, pdet=18.0%
+Replace best val model at epoch 178
+the learning rate: 0.0001
+Time used = 2887.47514128685
+Loading pure noise ...
+D=20, pdet=77.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.0%
+D=18, pdet=75.5%
+D=20, pdet=64.0%
+D=22, pdet=56.00000000000001%
+D=35, pdet=19.0%
+Replace best val model at epoch 179
+Replace best pdet model at epoch 179
+the learning rate: 0.0001
+Time used = 2900.7340548038483
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed45_norm.npz
+Loading pure noise ...
+D=20, pdet=65.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=78.5%
+D=18, pdet=63.0%
+D=20, pdet=52.0%
+D=22, pdet=48.0%
+D=35, pdet=7.5%
+Epoch 181/450, Training Loss: 3.761e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2922.7304105758667
+Loading pure noise ...
+D=20, pdet=71.1%
+Validation:
+D=9, pdet=93.5%
+D=12, pdet=62.0%
+D=15, pdet=45.5%
+D=18, pdet=30.0%
+D=20, pdet=19.5%
+D=22, pdet=13.5%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 2935.525099992752
+Loading pure noise ...
+D=20, pdet=73.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=71.0%
+D=20, pdet=56.99999999999999%
+D=22, pdet=54.0%
+D=35, pdet=15.0%
+the learning rate: 0.0001
+Time used = 2948.2522943019867
+Loading pure noise ...
+D=20, pdet=75.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.5%
+D=15, pdet=77.5%
+D=18, pdet=62.5%
+D=20, pdet=52.0%
+D=22, pdet=46.5%
+D=35, pdet=6.0%
+Epoch 184/450, Training Loss: 3.573e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 2961.0519914627075
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed46_norm.npz
+Loading pure noise ...
+D=20, pdet=64.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=70.5%
+D=20, pdet=62.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=17.0%
+the learning rate: 0.0001
+Time used = 2982.8470463752747
+Loading pure noise ...
+D=20, pdet=69.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.0%
+D=18, pdet=69.0%
+D=20, pdet=57.49999999999999%
+D=22, pdet=53.0%
+D=35, pdet=13.5%
+the learning rate: 0.0001
+Time used = 2998.3519871234894
+Loading pure noise ...
+D=20, pdet=74.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=94.5%
+D=18, pdet=77.0%
+D=20, pdet=65.0%
+D=22, pdet=59.5%
+D=35, pdet=22.0%
+Epoch 187/450, Training Loss: 3.754e-04, Validation Loss: 2.332e+03
+Replace best pdet model at epoch 186
+the learning rate: 0.0001
+Time used = 3012.0409095287323
+Loading pure noise ...
+D=20, pdet=75.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.0%
+D=18, pdet=77.0%
+D=20, pdet=65.5%
+D=22, pdet=60.5%
+D=35, pdet=22.0%
+Replace best val model at epoch 187
+the learning rate: 0.0001
+Time used = 3025.2469017505646
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed47_norm.npz
+Loading pure noise ...
+D=20, pdet=66.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=92.0%
+D=18, pdet=75.0%
+D=20, pdet=64.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=20.0%
+the learning rate: 0.0001
+Time used = 3047.125336408615
+Loading pure noise ...
+D=20, pdet=72.89999999999999%
+Validation:
+D=9, pdet=92.0%
+D=12, pdet=59.5%
+D=15, pdet=41.5%
+D=18, pdet=27.500000000000004%
+D=20, pdet=15.0%
+D=22, pdet=12.5%
+D=35, pdet=0.0%
+Epoch 190/450, Training Loss: 3.644e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 189
+the learning rate: 0.0001
+Time used = 3061.1556718349457
+Loading pure noise ...
+D=20, pdet=76.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.5%
+D=18, pdet=77.5%
+D=20, pdet=65.5%
+D=22, pdet=57.99999999999999%
+D=35, pdet=20.5%
+the learning rate: 0.0001
+Time used = 3074.4752328395844
+Loading pure noise ...
+D=20, pdet=78.7%
+Validation:
+D=9, pdet=98.5%
+D=12, pdet=76.5%
+D=15, pdet=56.00000000000001%
+D=18, pdet=43.5%
+D=20, pdet=34.0%
+D=22, pdet=24.5%
+D=35, pdet=0.0%
+Replace best val model at epoch 191
+the learning rate: 0.0001
+Time used = 3087.28093290329
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed48_norm.npz
+Loading pure noise ...
+D=20, pdet=71.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=84.0%
+D=18, pdet=67.5%
+D=20, pdet=55.00000000000001%
+D=22, pdet=50.0%
+D=35, pdet=12.5%
+Epoch 193/450, Training Loss: 3.713e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3109.419555425644
+Loading pure noise ...
+D=20, pdet=64.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=75.0%
+D=20, pdet=64.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=19.5%
+Replace best val model at epoch 193
+the learning rate: 0.0001
+Time used = 3123.245666742325
+Loading pure noise ...
+D=20, pdet=79.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.0%
+D=18, pdet=70.5%
+D=20, pdet=62.0%
+D=22, pdet=55.50000000000001%
+D=35, pdet=15.5%
+the learning rate: 0.0001
+Time used = 3135.977619409561
+Loading pure noise ...
+D=20, pdet=81.69999999999999%
+Validation:
+D=9, pdet=94.5%
+D=12, pdet=66.5%
+D=15, pdet=49.0%
+D=18, pdet=31.0%
+D=20, pdet=23.0%
+D=22, pdet=16.5%
+D=35, pdet=0.0%
+Epoch 196/450, Training Loss: 3.502e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3148.677444458008
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed49_norm.npz
+Loading pure noise ...
+D=20, pdet=67.0%
+Validation:
+D=9, pdet=99.5%
+D=12, pdet=74.5%
+D=15, pdet=59.5%
+D=18, pdet=45.0%
+D=20, pdet=36.5%
+D=22, pdet=25.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 3170.4209508895874
+Loading pure noise ...
+D=20, pdet=72.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=86.0%
+D=18, pdet=68.5%
+D=20, pdet=56.00000000000001%
+D=22, pdet=52.0%
+D=35, pdet=12.0%
+the learning rate: 0.0001
+Time used = 3183.2755880355835
+Loading pure noise ...
+D=20, pdet=75.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.0%
+D=18, pdet=73.5%
+D=20, pdet=63.5%
+D=22, pdet=56.49999999999999%
+D=35, pdet=18.0%
+Epoch 199/450, Training Loss: 3.608e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3196.5674543380737
+Loading pure noise ...
+D=20, pdet=77.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=81.5%
+D=18, pdet=64.0%
+D=20, pdet=53.5%
+D=22, pdet=48.0%
+D=35, pdet=10.5%
+the learning rate: 0.0001
+Time used = 3209.499436378479
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed50_norm.npz
+Loading pure noise ...
+D=20, pdet=66.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.5%
+D=18, pdet=72.5%
+D=20, pdet=60.0%
+D=22, pdet=55.50000000000001%
+D=35, pdet=15.5%
+Replace best val model at epoch 200
+the learning rate: 0.0001
+Time used = 3231.573761701584
+Loading pure noise ...
+D=20, pdet=73.1%
+Validation:
+D=9, pdet=97.5%
+D=12, pdet=71.0%
+D=15, pdet=52.5%
+D=18, pdet=39.5%
+D=20, pdet=26.0%
+D=22, pdet=21.0%
+D=35, pdet=0.0%
+Epoch 202/450, Training Loss: 3.673e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3244.632623910904
+Loading pure noise ...
+D=20, pdet=73.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.5%
+D=18, pdet=78.5%
+D=20, pdet=66.0%
+D=22, pdet=58.5%
+D=35, pdet=21.0%
+the learning rate: 0.0001
+Time used = 3257.391236305237
+Loading pure noise ...
+D=20, pdet=77.0%
+Validation:
+D=9, pdet=97.5%
+D=12, pdet=68.5%
+D=15, pdet=53.0%
+D=18, pdet=36.5%
+D=20, pdet=26.5%
+D=22, pdet=21.0%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 3270.200406074524
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed51_norm.npz
+Loading pure noise ...
+D=20, pdet=71.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.5%
+D=18, pdet=71.0%
+D=20, pdet=57.49999999999999%
+D=22, pdet=55.00000000000001%
+D=35, pdet=13.5%
+Epoch 205/450, Training Loss: 3.738e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3291.8419580459595
+Loading pure noise ...
+D=20, pdet=77.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=86.5%
+D=18, pdet=69.5%
+D=20, pdet=56.49999999999999%
+D=22, pdet=52.0%
+D=35, pdet=12.0%
+the learning rate: 0.0001
+Time used = 3304.610768556595
+Loading pure noise ...
+D=20, pdet=80.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.0%
+D=18, pdet=77.0%
+D=20, pdet=65.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=20.5%
+the learning rate: 0.0001
+Time used = 3317.589595556259
+Loading pure noise ...
+D=20, pdet=82.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.0%
+D=18, pdet=72.0%
+D=20, pdet=62.5%
+D=22, pdet=56.49999999999999%
+D=35, pdet=17.0%
+Epoch 208/450, Training Loss: 3.488e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3330.3909814357758
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed52_norm.npz
+Loading pure noise ...
+D=20, pdet=67.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=74.5%
+D=20, pdet=65.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=18.5%
+the learning rate: 0.0001
+Time used = 3352.5630176067352
+Loading pure noise ...
+D=20, pdet=56.699999999999996%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.0%
+D=18, pdet=77.0%
+D=20, pdet=65.5%
+D=22, pdet=59.5%
+D=35, pdet=22.0%
+the learning rate: 0.0001
+Time used = 3366.194395542145
+Loading pure noise ...
+D=20, pdet=71.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=96.0%
+D=18, pdet=78.0%
+D=20, pdet=69.0%
+D=22, pdet=61.0%
+D=35, pdet=22.5%
+Epoch 211/450, Training Loss: 3.624e-04, Validation Loss: 2.332e+03
+Replace best val model at epoch 210
+Replace best pdet model at epoch 210
+the learning rate: 0.0001
+Time used = 3378.99657869339
+Loading pure noise ...
+D=20, pdet=76.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=94.5%
+D=18, pdet=76.0%
+D=20, pdet=64.5%
+D=22, pdet=59.0%
+D=35, pdet=19.5%
+the learning rate: 0.0001
+Time used = 3391.6690788269043
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed53_norm.npz
+Loading pure noise ...
+D=20, pdet=66.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=72.5%
+D=20, pdet=64.0%
+D=22, pdet=57.49999999999999%
+D=35, pdet=16.5%
+the learning rate: 0.0001
+Time used = 3413.9600310325623
+Loading pure noise ...
+D=20, pdet=71.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.5%
+D=15, pdet=78.0%
+D=18, pdet=62.5%
+D=20, pdet=50.5%
+D=22, pdet=46.5%
+D=35, pdet=4.5%
+Epoch 214/450, Training Loss: 3.598e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3427.562964439392
+Loading pure noise ...
+D=20, pdet=74.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.0%
+D=18, pdet=71.5%
+D=20, pdet=60.5%
+D=22, pdet=55.50000000000001%
+D=35, pdet=13.5%
+Replace best val model at epoch 214
+the learning rate: 0.0001
+Time used = 3440.658250808716
+Loading pure noise ...
+D=20, pdet=75.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.5%
+D=18, pdet=79.0%
+D=20, pdet=67.0%
+D=22, pdet=61.0%
+D=35, pdet=24.5%
+Replace best val model at epoch 215
+Replace best pdet model at epoch 215
+the learning rate: 0.0001
+Time used = 3453.579064130783
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed54_norm.npz
+Loading pure noise ...
+D=20, pdet=66.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.0%
+D=18, pdet=71.0%
+D=20, pdet=60.5%
+D=22, pdet=56.00000000000001%
+D=35, pdet=15.0%
+Epoch 217/450, Training Loss: 3.661e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3476.078159570694
+Loading pure noise ...
+D=20, pdet=71.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=82.0%
+D=18, pdet=64.5%
+D=20, pdet=55.50000000000001%
+D=22, pdet=49.0%
+D=35, pdet=12.0%
+the learning rate: 0.0001
+Time used = 3488.8867065906525
+Loading pure noise ...
+D=20, pdet=78.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=87.0%
+D=18, pdet=69.0%
+D=20, pdet=56.49999999999999%
+D=22, pdet=52.5%
+D=35, pdet=14.000000000000002%
+the learning rate: 0.0001
+Time used = 3502.3132407665253
+Loading pure noise ...
+D=20, pdet=76.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=78.5%
+D=20, pdet=66.0%
+D=22, pdet=59.5%
+D=35, pdet=20.5%
+Epoch 220/450, Training Loss: 3.436e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3515.063529729843
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed55_norm.npz
+Loading pure noise ...
+D=20, pdet=66.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.0%
+D=18, pdet=76.0%
+D=20, pdet=64.5%
+D=22, pdet=56.49999999999999%
+D=35, pdet=18.5%
+Replace best val model at epoch 220
+the learning rate: 0.0001
+Time used = 3537.073896408081
+Loading pure noise ...
+D=20, pdet=73.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=96.5%
+D=15, pdet=77.0%
+D=18, pdet=59.0%
+D=20, pdet=51.5%
+D=22, pdet=45.5%
+D=35, pdet=5.5%
+the learning rate: 0.0001
+Time used = 3549.7683539390564
+Loading pure noise ...
+D=20, pdet=75.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=71.5%
+D=20, pdet=63.0%
+D=22, pdet=55.00000000000001%
+D=35, pdet=15.0%
+Epoch 223/450, Training Loss: 3.521e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 3562.9989683628082
+Loading pure noise ...
+D=20, pdet=76.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=81.0%
+D=15, pdet=64.0%
+D=18, pdet=50.0%
+D=20, pdet=40.5%
+D=22, pdet=33.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 3576.190963745117
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed56_norm.npz
+Loading pure noise ...
+D=20, pdet=67.30000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=76.0%
+D=20, pdet=66.5%
+D=22, pdet=60.0%
+D=35, pdet=21.0%
+the learning rate: 0.0001
+Time used = 3600.5794875621796
+Loading pure noise ...
+D=20, pdet=72.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=71.5%
+D=20, pdet=61.0%
+D=22, pdet=54.0%
+D=35, pdet=15.5%
+Epoch 226/450, Training Loss: 3.583e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3613.324385166168
+Loading pure noise ...
+D=20, pdet=74.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=76.0%
+D=20, pdet=65.0%
+D=22, pdet=58.5%
+D=35, pdet=20.0%
+the learning rate: 0.0001
+Time used = 3626.4991567134857
+Loading pure noise ...
+D=20, pdet=77.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=90.5%
+D=18, pdet=73.5%
+D=20, pdet=62.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=17.5%
+the learning rate: 0.0001
+Time used = 3639.3851079940796
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed57_norm.npz
+Loading pure noise ...
+D=20, pdet=69.1%
+Validation:
+D=9, pdet=98.5%
+D=12, pdet=71.5%
+D=15, pdet=55.00000000000001%
+D=18, pdet=41.5%
+D=20, pdet=30.0%
+D=22, pdet=24.0%
+D=35, pdet=0.0%
+Epoch 229/450, Training Loss: 3.690e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3661.0082030296326
+Loading pure noise ...
+D=20, pdet=73.8%
+Validation:
+D=9, pdet=97.0%
+D=12, pdet=69.0%
+D=15, pdet=52.0%
+D=18, pdet=36.5%
+D=20, pdet=26.5%
+D=22, pdet=22.0%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 3673.6987643241882
+Loading pure noise ...
+D=20, pdet=79.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=92.5%
+D=18, pdet=74.0%
+D=20, pdet=63.5%
+D=22, pdet=56.00000000000001%
+D=35, pdet=17.5%
+the learning rate: 0.0001
+Time used = 3687.9902992248535
+Loading pure noise ...
+D=20, pdet=79.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=90.5%
+D=15, pdet=69.5%
+D=18, pdet=57.49999999999999%
+D=20, pdet=46.0%
+D=22, pdet=40.5%
+D=35, pdet=2.5%
+Epoch 232/450, Training Loss: 3.447e-04, Validation Loss: 2.331e+03
+Replace best val model at epoch 231
+the learning rate: 0.0001
+Time used = 3701.3130762577057
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed58_norm.npz
+Loading pure noise ...
+D=20, pdet=68.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=76.0%
+D=20, pdet=64.0%
+D=22, pdet=57.49999999999999%
+D=35, pdet=20.0%
+the learning rate: 0.0001
+Time used = 3723.7902760505676
+Loading pure noise ...
+D=20, pdet=71.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=86.5%
+D=18, pdet=67.0%
+D=20, pdet=56.00000000000001%
+D=22, pdet=52.0%
+D=35, pdet=11.0%
+the learning rate: 0.0001
+Time used = 3736.5081906318665
+Loading pure noise ...
+D=20, pdet=75.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=94.0%
+D=18, pdet=76.5%
+D=20, pdet=63.5%
+D=22, pdet=57.99999999999999%
+D=35, pdet=20.0%
+Epoch 235/450, Training Loss: 3.480e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3749.2243852615356
+Loading pure noise ...
+D=20, pdet=78.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=94.5%
+D=18, pdet=79.0%
+D=20, pdet=66.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=23.5%
+the learning rate: 0.0001
+Time used = 3763.897240638733
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed59_norm.npz
+Loading pure noise ...
+D=20, pdet=65.9%
+Validation:
+D=9, pdet=85.0%
+D=12, pdet=51.5%
+D=15, pdet=30.5%
+D=18, pdet=19.5%
+D=20, pdet=8.0%
+D=22, pdet=6.5%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 3785.9180855751038
+Loading pure noise ...
+D=20, pdet=73.5%
+Validation:
+D=9, pdet=88.0%
+D=12, pdet=55.00000000000001%
+D=15, pdet=35.0%
+D=18, pdet=20.0%
+D=20, pdet=12.0%
+D=22, pdet=7.000000000000001%
+D=35, pdet=0.0%
+Epoch 238/450, Training Loss: 3.495e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3798.877595424652
+Loading pure noise ...
+D=20, pdet=76.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.0%
+D=18, pdet=75.0%
+D=20, pdet=62.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=17.0%
+the learning rate: 0.0001
+Time used = 3813.332539796829
+Loading pure noise ...
+D=20, pdet=77.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.0%
+D=18, pdet=74.0%
+D=20, pdet=63.5%
+D=22, pdet=56.49999999999999%
+D=35, pdet=16.5%
+the learning rate: 0.0001
+Time used = 3826.6328604221344
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed60_norm.npz
+Loading pure noise ...
+D=20, pdet=70.6%
+Validation:
+D=9, pdet=96.0%
+D=12, pdet=69.0%
+D=15, pdet=52.0%
+D=18, pdet=37.0%
+D=20, pdet=28.499999999999996%
+D=22, pdet=20.0%
+D=35, pdet=0.5%
+Epoch 241/450, Training Loss: 3.542e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3848.431322336197
+Loading pure noise ...
+D=20, pdet=73.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=85.5%
+D=18, pdet=68.5%
+D=20, pdet=57.99999999999999%
+D=22, pdet=51.0%
+D=35, pdet=11.5%
+the learning rate: 0.0001
+Time used = 3861.145316839218
+Loading pure noise ...
+D=20, pdet=77.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=87.5%
+D=18, pdet=72.0%
+D=20, pdet=61.5%
+D=22, pdet=56.00000000000001%
+D=35, pdet=14.499999999999998%
+the learning rate: 0.0001
+Time used = 3873.860067844391
+Loading pure noise ...
+D=20, pdet=79.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.5%
+D=18, pdet=70.5%
+D=20, pdet=62.0%
+D=22, pdet=55.00000000000001%
+D=35, pdet=14.000000000000002%
+Epoch 244/450, Training Loss: 3.308e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 3886.543802022934
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed61_norm.npz
+Loading pure noise ...
+D=20, pdet=70.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.5%
+D=18, pdet=76.0%
+D=20, pdet=61.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=17.5%
+Replace best val model at epoch 244
+the learning rate: 0.0001
+Time used = 3908.423705101013
+Loading pure noise ...
+D=20, pdet=75.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.5%
+D=18, pdet=68.5%
+D=20, pdet=57.99999999999999%
+D=22, pdet=55.00000000000001%
+D=35, pdet=13.0%
+the learning rate: 0.0001
+Time used = 3921.110903739929
+Loading pure noise ...
+D=20, pdet=77.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.5%
+D=18, pdet=76.0%
+D=20, pdet=64.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=19.5%
+Epoch 247/450, Training Loss: 3.477e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 3933.9302570819855
+Loading pure noise ...
+D=20, pdet=51.2%
+Validation:
+D=9, pdet=95.0%
+D=12, pdet=65.0%
+D=15, pdet=47.0%
+D=18, pdet=35.5%
+D=20, pdet=22.5%
+D=22, pdet=17.5%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 3946.7546651363373
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed62_norm.npz
+Loading pure noise ...
+D=20, pdet=67.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=94.0%
+D=15, pdet=70.0%
+D=18, pdet=58.5%
+D=20, pdet=48.0%
+D=22, pdet=43.0%
+D=35, pdet=3.0%
+the learning rate: 0.0001
+Time used = 3969.0646212100983
+Loading pure noise ...
+D=20, pdet=74.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.5%
+D=18, pdet=70.0%
+D=20, pdet=60.0%
+D=22, pdet=55.00000000000001%
+D=35, pdet=14.499999999999998%
+Epoch 250/450, Training Loss: 3.471e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 3981.977349281311
+Loading pure noise ...
+D=20, pdet=77.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=96.0%
+D=18, pdet=79.5%
+D=20, pdet=69.5%
+D=22, pdet=61.0%
+D=35, pdet=24.5%
+Replace best val model at epoch 250
+the learning rate: 0.0001
+Time used = 3994.7835426330566
+Loading pure noise ...
+D=20, pdet=78.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=74.0%
+D=20, pdet=62.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=16.5%
+the learning rate: 0.0001
+Time used = 4008.2983281612396
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed63_norm.npz
+Loading pure noise ...
+D=20, pdet=68.30000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=79.0%
+D=18, pdet=62.5%
+D=20, pdet=52.0%
+D=22, pdet=47.0%
+D=35, pdet=6.0%
+Epoch 253/450, Training Loss: 3.577e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 4030.4354367256165
+Loading pure noise ...
+D=20, pdet=72.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.0%
+D=18, pdet=79.5%
+D=20, pdet=68.0%
+D=22, pdet=60.0%
+D=35, pdet=24.0%
+the learning rate: 0.0001
+Time used = 4043.1652052402496
+Loading pure noise ...
+D=20, pdet=76.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=86.5%
+D=18, pdet=70.0%
+D=20, pdet=59.0%
+D=22, pdet=52.5%
+D=35, pdet=14.499999999999998%
+Replace best val model at epoch 254
+the learning rate: 0.0001
+Time used = 4055.895407438278
+Loading pure noise ...
+D=20, pdet=77.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=92.0%
+D=18, pdet=76.0%
+D=20, pdet=63.0%
+D=22, pdet=57.49999999999999%
+D=35, pdet=19.0%
+Epoch 256/450, Training Loss: 3.331e-04, Validation Loss: 2.331e+03
+Replace best val model at epoch 255
+the learning rate: 0.0001
+Time used = 4078.9925565719604
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed64_norm.npz
+Loading pure noise ...
+D=20, pdet=65.2%
+Validation:
+D=9, pdet=98.0%
+D=12, pdet=70.5%
+D=15, pdet=52.5%
+D=18, pdet=39.5%
+D=20, pdet=25.5%
+D=22, pdet=22.0%
+D=35, pdet=0.0%
+the learning rate: 0.0001
+Time used = 4101.379338264465
+Loading pure noise ...
+D=20, pdet=72.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.0%
+D=18, pdet=76.0%
+D=20, pdet=64.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=20.5%
+the learning rate: 0.0001
+Time used = 4119.951532840729
+Loading pure noise ...
+D=20, pdet=77.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.0%
+D=18, pdet=77.0%
+D=20, pdet=65.5%
+D=22, pdet=57.99999999999999%
+D=35, pdet=21.0%
+Epoch 259/450, Training Loss: 3.393e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4132.7753648757935
+Loading pure noise ...
+D=20, pdet=77.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=81.0%
+D=18, pdet=65.0%
+D=20, pdet=55.00000000000001%
+D=22, pdet=50.0%
+D=35, pdet=10.5%
+the learning rate: 0.0001
+Time used = 4145.793932199478
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed65_norm.npz
+Loading pure noise ...
+D=20, pdet=67.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.5%
+D=18, pdet=78.0%
+D=20, pdet=64.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=20.5%
+the learning rate: 0.0001
+Time used = 4167.394938468933
+Loading pure noise ...
+D=20, pdet=72.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=84.0%
+D=18, pdet=69.0%
+D=20, pdet=59.0%
+D=22, pdet=53.5%
+D=35, pdet=14.499999999999998%
+Epoch 262/450, Training Loss: 3.480e-04, Validation Loss: 2.332e+03
+the learning rate: 0.0001
+Time used = 4180.342304468155
+Loading pure noise ...
+D=20, pdet=77.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.5%
+D=18, pdet=78.5%
+D=20, pdet=67.0%
+D=22, pdet=59.0%
+D=35, pdet=23.0%
+the learning rate: 0.0001
+Time used = 4195.041568994522
+Loading pure noise ...
+D=20, pdet=77.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=83.0%
+D=18, pdet=69.0%
+D=20, pdet=56.49999999999999%
+D=22, pdet=52.5%
+D=35, pdet=11.5%
+the learning rate: 0.0001
+Time used = 4207.7415935993195
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed66_norm.npz
+Loading pure noise ...
+D=20, pdet=69.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=92.0%
+D=18, pdet=76.5%
+D=20, pdet=62.5%
+D=22, pdet=58.5%
+D=35, pdet=20.0%
+Epoch 265/450, Training Loss: 3.551e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4230.037230491638
+Loading pure noise ...
+D=20, pdet=76.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=92.0%
+D=18, pdet=77.5%
+D=20, pdet=64.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=21.0%
+the learning rate: 0.0001
+Time used = 4243.020220756531
+Loading pure noise ...
+D=20, pdet=78.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=83.5%
+D=18, pdet=65.5%
+D=20, pdet=55.00000000000001%
+D=22, pdet=51.0%
+D=35, pdet=11.0%
+the learning rate: 0.0001
+Time used = 4255.742581129074
+Loading pure noise ...
+D=20, pdet=80.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=74.0%
+D=20, pdet=60.0%
+D=22, pdet=56.99999999999999%
+D=35, pdet=15.0%
+Epoch 268/450, Training Loss: 3.290e-04, Validation Loss: 2.331e+03
+Replace best val model at epoch 267
+the learning rate: 0.0001
+Time used = 4268.490993261337
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed67_norm.npz
+Loading pure noise ...
+D=20, pdet=66.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=95.0%
+D=15, pdet=72.5%
+D=18, pdet=58.5%
+D=20, pdet=50.5%
+D=22, pdet=43.0%
+D=35, pdet=3.0%
+the learning rate: 0.0001
+Time used = 4290.967347145081
+Loading pure noise ...
+D=20, pdet=71.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=77.5%
+D=20, pdet=67.5%
+D=22, pdet=59.0%
+D=35, pdet=23.5%
+the learning rate: 0.0001
+Time used = 4304.465280532837
+Loading pure noise ...
+D=20, pdet=74.3%
+Validation:
+D=9, pdet=92.5%
+D=12, pdet=61.5%
+D=15, pdet=44.0%
+D=18, pdet=32.0%
+D=20, pdet=15.5%
+D=22, pdet=14.499999999999998%
+D=35, pdet=0.0%
+Epoch 271/450, Training Loss: 3.349e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4317.778256654739
+Loading pure noise ...
+D=20, pdet=75.9%
+Validation:
+D=9, pdet=87.0%
+D=12, pdet=52.0%
+D=15, pdet=33.0%
+D=18, pdet=22.0%
+D=20, pdet=9.0%
+D=22, pdet=10.5%
+D=35, pdet=0.5%
+the learning rate: 0.0001
+Time used = 4330.911139011383
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed68_norm.npz
+Loading pure noise ...
+D=20, pdet=70.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=91.5%
+D=15, pdet=68.5%
+D=18, pdet=56.99999999999999%
+D=20, pdet=47.0%
+D=22, pdet=41.5%
+D=35, pdet=1.5%
+the learning rate: 0.0001
+Time used = 4353.128662347794
+Loading pure noise ...
+D=20, pdet=74.2%
+Validation:
+D=9, pdet=96.0%
+D=12, pdet=67.0%
+D=15, pdet=49.5%
+D=18, pdet=35.0%
+D=20, pdet=24.5%
+D=22, pdet=20.0%
+D=35, pdet=0.5%
+Epoch 274/450, Training Loss: 3.437e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4366.224534988403
+Loading pure noise ...
+D=20, pdet=77.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=90.0%
+D=18, pdet=74.5%
+D=20, pdet=61.0%
+D=22, pdet=56.00000000000001%
+D=35, pdet=16.0%
+the learning rate: 0.0001
+Time used = 4379.139860391617
+Loading pure noise ...
+D=20, pdet=78.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=76.0%
+D=20, pdet=63.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=17.5%
+Replace best val model at epoch 275
+the learning rate: 0.0001
+Time used = 4393.813173294067
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed69_norm.npz
+Loading pure noise ...
+D=20, pdet=70.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=87.5%
+D=18, pdet=69.0%
+D=20, pdet=56.49999999999999%
+D=22, pdet=53.0%
+D=35, pdet=13.5%
+Epoch 277/450, Training Loss: 3.505e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4416.119046449661
+Loading pure noise ...
+D=20, pdet=74.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=94.5%
+D=18, pdet=78.0%
+D=20, pdet=68.0%
+D=22, pdet=58.5%
+D=35, pdet=22.5%
+the learning rate: 0.0001
+Time used = 4429.282112836838
+Loading pure noise ...
+D=20, pdet=78.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.5%
+D=18, pdet=78.0%
+D=20, pdet=66.5%
+D=22, pdet=58.5%
+D=35, pdet=22.0%
+the learning rate: 0.0001
+Time used = 4445.058748722076
+Loading pure noise ...
+D=20, pdet=72.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.5%
+D=18, pdet=79.5%
+D=20, pdet=69.0%
+D=22, pdet=60.5%
+D=35, pdet=24.0%
+Epoch 280/450, Training Loss: 3.297e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4457.91951584816
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed70_norm.npz
+Loading pure noise ...
+D=20, pdet=70.19999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=74.0%
+D=20, pdet=61.5%
+D=22, pdet=56.49999999999999%
+D=35, pdet=16.5%
+the learning rate: 0.0001
+Time used = 4480.261035203934
+Loading pure noise ...
+D=20, pdet=72.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.0%
+D=18, pdet=76.5%
+D=20, pdet=66.0%
+D=22, pdet=59.0%
+D=35, pdet=21.0%
+the learning rate: 0.0001
+Time used = 4496.385886192322
+Loading pure noise ...
+D=20, pdet=77.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.0%
+D=18, pdet=77.5%
+D=20, pdet=65.0%
+D=22, pdet=58.5%
+D=35, pdet=22.5%
+Epoch 283/450, Training Loss: 3.341e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4509.546227455139
+Loading pure noise ...
+D=20, pdet=80.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.0%
+D=18, pdet=73.0%
+D=20, pdet=60.0%
+D=22, pdet=55.50000000000001%
+D=35, pdet=16.0%
+the learning rate: 0.0001
+Time used = 4522.537555217743
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed71_norm.npz
+Loading pure noise ...
+D=20, pdet=66.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=94.5%
+D=18, pdet=77.5%
+D=20, pdet=66.5%
+D=22, pdet=61.0%
+D=35, pdet=23.5%
+the learning rate: 0.0001
+Time used = 4544.420501232147
+Loading pure noise ...
+D=20, pdet=75.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.5%
+D=18, pdet=74.5%
+D=20, pdet=61.5%
+D=22, pdet=57.99999999999999%
+D=35, pdet=18.5%
+Epoch 286/450, Training Loss: 3.378e-04, Validation Loss: 2.331e+03
+Replace best val model at epoch 285
+the learning rate: 0.0001
+Time used = 4557.4228727817535
+Loading pure noise ...
+D=20, pdet=76.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=76.0%
+D=20, pdet=64.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=18.5%
+the learning rate: 0.0001
+Time used = 4570.984329223633
+Loading pure noise ...
+D=20, pdet=78.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=93.5%
+D=18, pdet=76.0%
+D=20, pdet=65.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=21.5%
+the learning rate: 0.0001
+Time used = 4584.135953426361
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed72_norm.npz
+Loading pure noise ...
+D=20, pdet=71.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=91.5%
+D=18, pdet=74.0%
+D=20, pdet=62.5%
+D=22, pdet=56.49999999999999%
+D=35, pdet=16.5%
+Epoch 289/450, Training Loss: 3.559e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4606.355568885803
+Loading pure noise ...
+D=20, pdet=75.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=74.5%
+D=20, pdet=62.0%
+D=22, pdet=56.99999999999999%
+D=35, pdet=17.5%
+the learning rate: 0.0001
+Time used = 4619.1723737716675
+Loading pure noise ...
+D=20, pdet=76.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.0%
+D=18, pdet=76.5%
+D=20, pdet=65.5%
+D=22, pdet=58.5%
+D=35, pdet=18.5%
+the learning rate: 0.0001
+Time used = 4632.020023584366
+Loading pure noise ...
+D=20, pdet=80.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=72.0%
+D=20, pdet=61.0%
+D=22, pdet=56.99999999999999%
+D=35, pdet=15.5%
+Epoch 292/450, Training Loss: 3.300e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4644.8180232048035
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed73_norm.npz
+Loading pure noise ...
+D=20, pdet=72.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.0%
+D=18, pdet=72.5%
+D=20, pdet=61.0%
+D=22, pdet=54.50000000000001%
+D=35, pdet=15.0%
+the learning rate: 0.0001
+Time used = 4676.6690011024475
+Loading pure noise ...
+D=20, pdet=77.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=76.5%
+D=20, pdet=64.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=20.5%
+Replace best val model at epoch 293
+the learning rate: 0.0001
+Time used = 4689.579582929611
+Loading pure noise ...
+D=20, pdet=82.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=85.0%
+D=18, pdet=68.5%
+D=20, pdet=56.99999999999999%
+D=22, pdet=53.0%
+D=35, pdet=13.0%
+Epoch 295/450, Training Loss: 3.289e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4705.944342851639
+Loading pure noise ...
+D=20, pdet=83.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.5%
+D=18, pdet=77.0%
+D=20, pdet=67.0%
+D=22, pdet=56.99999999999999%
+D=35, pdet=21.5%
+the learning rate: 0.0001
+Time used = 4718.847332715988
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed74_norm.npz
+Loading pure noise ...
+D=20, pdet=70.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=87.5%
+D=18, pdet=70.5%
+D=20, pdet=57.49999999999999%
+D=22, pdet=54.50000000000001%
+D=35, pdet=12.0%
+the learning rate: 0.0001
+Time used = 4740.937915086746
+Loading pure noise ...
+D=20, pdet=75.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=76.5%
+D=20, pdet=64.0%
+D=22, pdet=58.5%
+D=35, pdet=20.5%
+Epoch 298/450, Training Loss: 3.409e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4753.758165597916
+Loading pure noise ...
+D=20, pdet=76.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=94.5%
+D=18, pdet=77.0%
+D=20, pdet=67.0%
+D=22, pdet=57.49999999999999%
+D=35, pdet=20.0%
+the learning rate: 0.0001
+Time used = 4766.488207817078
+Loading pure noise ...
+D=20, pdet=77.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.0%
+D=18, pdet=74.5%
+D=20, pdet=63.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=15.0%
+the learning rate: 0.0001
+Time used = 4779.0996470451355
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed75_norm.npz
+Loading pure noise ...
+D=20, pdet=69.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.5%
+D=15, pdet=80.5%
+D=18, pdet=63.0%
+D=20, pdet=55.00000000000001%
+D=22, pdet=49.5%
+D=35, pdet=10.5%
+Epoch 301/450, Training Loss: 3.519e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4801.295084476471
+Loading pure noise ...
+D=20, pdet=74.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.5%
+D=18, pdet=71.0%
+D=20, pdet=62.0%
+D=22, pdet=54.0%
+D=35, pdet=13.5%
+the learning rate: 0.0001
+Time used = 4814.561560153961
+Loading pure noise ...
+D=20, pdet=77.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=97.0%
+D=18, pdet=76.5%
+D=20, pdet=68.0%
+D=22, pdet=59.0%
+D=35, pdet=20.0%
+the learning rate: 0.0001
+Time used = 4827.717312812805
+Loading pure noise ...
+D=20, pdet=77.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=84.5%
+D=15, pdet=67.0%
+D=18, pdet=53.5%
+D=20, pdet=44.0%
+D=22, pdet=40.0%
+D=35, pdet=0.5%
+Epoch 304/450, Training Loss: 3.276e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4840.955965280533
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed76_norm.npz
+Loading pure noise ...
+D=20, pdet=69.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=80.0%
+D=18, pdet=60.5%
+D=20, pdet=53.0%
+D=22, pdet=47.5%
+D=35, pdet=7.5%
+the learning rate: 0.0001
+Time used = 4862.623116970062
+Loading pure noise ...
+D=20, pdet=74.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=83.0%
+D=15, pdet=64.5%
+D=18, pdet=54.50000000000001%
+D=20, pdet=44.0%
+D=22, pdet=36.0%
+D=35, pdet=1.0%
+the learning rate: 0.0001
+Time used = 4875.607476234436
+Loading pure noise ...
+D=20, pdet=76.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=77.0%
+D=20, pdet=64.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=21.0%
+Epoch 307/450, Training Loss: 3.298e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4890.49947810173
+Loading pure noise ...
+D=20, pdet=79.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=77.0%
+D=20, pdet=66.5%
+D=22, pdet=57.49999999999999%
+D=35, pdet=20.5%
+the learning rate: 0.0001
+Time used = 4903.370261669159
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed77_norm.npz
+Loading pure noise ...
+D=20, pdet=71.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.5%
+D=18, pdet=78.5%
+D=20, pdet=69.0%
+D=22, pdet=60.0%
+D=35, pdet=23.5%
+the learning rate: 0.0001
+Time used = 4924.99550819397
+Loading pure noise ...
+D=20, pdet=76.0%
+Validation:
+D=9, pdet=99.5%
+D=12, pdet=80.5%
+D=15, pdet=60.5%
+D=18, pdet=49.5%
+D=20, pdet=40.0%
+D=22, pdet=32.5%
+D=35, pdet=1.0%
+Epoch 310/450, Training Loss: 3.336e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4937.818935394287
+Loading pure noise ...
+D=20, pdet=76.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=81.0%
+D=18, pdet=62.0%
+D=20, pdet=54.0%
+D=22, pdet=49.0%
+D=35, pdet=10.0%
+the learning rate: 0.0001
+Time used = 4950.673400640488
+Loading pure noise ...
+D=20, pdet=76.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.5%
+D=18, pdet=76.5%
+D=20, pdet=68.5%
+D=22, pdet=58.5%
+D=35, pdet=21.5%
+the learning rate: 0.0001
+Time used = 4968.709449291229
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed78_norm.npz
+Loading pure noise ...
+D=20, pdet=71.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.0%
+D=18, pdet=75.5%
+D=20, pdet=65.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=17.0%
+Epoch 313/450, Training Loss: 3.447e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 4990.662872552872
+Loading pure noise ...
+D=20, pdet=77.60000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=86.5%
+D=18, pdet=69.0%
+D=20, pdet=57.49999999999999%
+D=22, pdet=51.0%
+D=35, pdet=13.0%
+the learning rate: 0.0001
+Time used = 5003.852753400803
+Loading pure noise ...
+D=20, pdet=80.30000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.5%
+D=18, pdet=76.0%
+D=20, pdet=65.5%
+D=22, pdet=56.00000000000001%
+D=35, pdet=17.5%
+the learning rate: 0.0001
+Time used = 5016.974135875702
+Loading pure noise ...
+D=20, pdet=81.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.5%
+D=18, pdet=78.5%
+D=20, pdet=67.0%
+D=22, pdet=58.5%
+D=35, pdet=19.0%
+Epoch 316/450, Training Loss: 3.178e-04, Validation Loss: 2.331e+03
+the learning rate: 0.0001
+Time used = 5030.040222644806
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed79_norm.npz
+Loading pure noise ...
+D=20, pdet=71.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=92.0%
+D=18, pdet=75.5%
+D=20, pdet=64.0%
+D=22, pdet=57.49999999999999%
+D=35, pdet=17.0%
+the learning rate: 5e-05
+Time used = 5051.583610296249
+Loading pure noise ...
+D=20, pdet=75.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=91.5%
+D=18, pdet=76.0%
+D=20, pdet=63.5%
+D=22, pdet=55.50000000000001%
+D=35, pdet=16.0%
+the learning rate: 5e-05
+Time used = 5064.658340454102
+Loading pure noise ...
+D=20, pdet=76.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=92.5%
+D=18, pdet=74.5%
+D=20, pdet=63.0%
+D=22, pdet=56.00000000000001%
+D=35, pdet=16.0%
+Epoch 319/450, Training Loss: 3.240e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5077.884776353836
+Loading pure noise ...
+D=20, pdet=79.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.5%
+D=18, pdet=78.5%
+D=20, pdet=69.5%
+D=22, pdet=59.5%
+D=35, pdet=22.5%
+the learning rate: 5e-05
+Time used = 5090.732509613037
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed80_norm.npz
+Loading pure noise ...
+D=20, pdet=67.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=78.5%
+D=20, pdet=69.5%
+D=22, pdet=58.5%
+D=35, pdet=21.0%
+the learning rate: 5e-05
+Time used = 5112.541464090347
+Loading pure noise ...
+D=20, pdet=72.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=94.0%
+D=18, pdet=78.0%
+D=20, pdet=66.5%
+D=22, pdet=59.0%
+D=35, pdet=17.5%
+Epoch 322/450, Training Loss: 3.408e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5125.436748981476
+Loading pure noise ...
+D=20, pdet=75.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=78.5%
+D=20, pdet=68.5%
+D=22, pdet=59.5%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 5138.119971036911
+Loading pure noise ...
+D=20, pdet=75.7%
+Validation:
+D=9, pdet=81.5%
+D=12, pdet=47.5%
+D=15, pdet=32.0%
+D=18, pdet=19.5%
+D=20, pdet=6.5%
+D=22, pdet=9.0%
+D=35, pdet=0.5%
+the learning rate: 5e-05
+Time used = 5150.870207071304
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed81_norm.npz
+Loading pure noise ...
+D=20, pdet=69.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=96.0%
+D=18, pdet=78.0%
+D=20, pdet=70.5%
+D=22, pdet=60.0%
+D=35, pdet=23.0%
+Epoch 325/450, Training Loss: 3.483e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5172.500122785568
+Loading pure noise ...
+D=20, pdet=74.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=96.5%
+D=18, pdet=78.0%
+D=20, pdet=70.5%
+D=22, pdet=60.5%
+D=35, pdet=25.0%
+Replace best pdet model at epoch 325
+the learning rate: 5e-05
+Time used = 5185.268542289734
+Loading pure noise ...
+D=20, pdet=72.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=96.5%
+D=18, pdet=79.5%
+D=20, pdet=70.5%
+D=22, pdet=61.5%
+D=35, pdet=25.0%
+the learning rate: 5e-05
+Time used = 5198.909967660904
+Loading pure noise ...
+D=20, pdet=74.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=96.5%
+D=18, pdet=79.5%
+D=20, pdet=71.0%
+D=22, pdet=61.0%
+D=35, pdet=25.0%
+Epoch 328/450, Training Loss: 3.318e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5212.173187017441
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed82_norm.npz
+Loading pure noise ...
+D=20, pdet=70.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=78.0%
+D=20, pdet=67.5%
+D=22, pdet=58.5%
+D=35, pdet=19.0%
+the learning rate: 5e-05
+Time used = 5234.246474266052
+Loading pure noise ...
+D=20, pdet=70.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=80.5%
+D=20, pdet=70.0%
+D=22, pdet=63.0%
+D=35, pdet=25.0%
+the learning rate: 5e-05
+Time used = 5247.0023646354675
+Loading pure noise ...
+D=20, pdet=73.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.5%
+D=18, pdet=78.5%
+D=20, pdet=69.5%
+D=22, pdet=60.0%
+D=35, pdet=23.5%
+Epoch 331/450, Training Loss: 3.285e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5260.241726875305
+Loading pure noise ...
+D=20, pdet=73.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.5%
+D=18, pdet=79.0%
+D=20, pdet=71.0%
+D=22, pdet=60.5%
+D=35, pdet=26.0%
+Replace best val model at epoch 331
+Replace best pdet model at epoch 331
+the learning rate: 5e-05
+Time used = 5273.3936419487
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed83_norm.npz
+Loading pure noise ...
+D=20, pdet=71.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.0%
+D=18, pdet=80.5%
+D=20, pdet=72.5%
+D=22, pdet=63.0%
+D=35, pdet=28.000000000000004%
+Replace best pdet model at epoch 332
+the learning rate: 5e-05
+Time used = 5295.316281318665
+Loading pure noise ...
+D=20, pdet=74.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=77.5%
+D=20, pdet=67.0%
+D=22, pdet=58.5%
+D=35, pdet=22.0%
+Epoch 334/450, Training Loss: 3.314e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5308.052406787872
+Loading pure noise ...
+D=20, pdet=75.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=77.5%
+D=20, pdet=67.5%
+D=22, pdet=59.5%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 5320.877028226852
+Loading pure noise ...
+D=20, pdet=76.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.5%
+D=18, pdet=78.0%
+D=20, pdet=68.5%
+D=22, pdet=60.0%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 5333.744608879089
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed84_norm.npz
+Loading pure noise ...
+D=20, pdet=72.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=90.5%
+D=18, pdet=75.0%
+D=20, pdet=62.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=16.5%
+Epoch 337/450, Training Loss: 3.432e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5355.446189403534
+Loading pure noise ...
+D=20, pdet=76.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.0%
+D=18, pdet=79.0%
+D=20, pdet=68.0%
+D=22, pdet=62.5%
+D=35, pdet=24.0%
+the learning rate: 5e-05
+Time used = 5368.336411714554
+Loading pure noise ...
+D=20, pdet=77.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=84.5%
+D=18, pdet=65.5%
+D=20, pdet=56.00000000000001%
+D=22, pdet=51.5%
+D=35, pdet=11.0%
+Replace best val model at epoch 338
+the learning rate: 5e-05
+Time used = 5381.057633161545
+Loading pure noise ...
+D=20, pdet=77.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=78.5%
+D=20, pdet=66.0%
+D=22, pdet=60.0%
+D=35, pdet=23.0%
+Epoch 340/450, Training Loss: 3.239e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5393.83744931221
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed85_norm.npz
+Loading pure noise ...
+D=20, pdet=70.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.5%
+D=18, pdet=78.0%
+D=20, pdet=67.5%
+D=22, pdet=59.5%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 5415.532949447632
+Loading pure noise ...
+D=20, pdet=74.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=77.5%
+D=20, pdet=67.0%
+D=22, pdet=61.0%
+D=35, pdet=23.5%
+the learning rate: 5e-05
+Time used = 5428.381704330444
+Loading pure noise ...
+D=20, pdet=76.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=77.5%
+D=20, pdet=66.0%
+D=22, pdet=59.0%
+D=35, pdet=24.5%
+Epoch 343/450, Training Loss: 3.308e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5441.119582653046
+Loading pure noise ...
+D=20, pdet=77.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=69.0%
+D=22, pdet=60.5%
+D=35, pdet=24.5%
+the learning rate: 5e-05
+Time used = 5454.913175344467
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed86_norm.npz
+Loading pure noise ...
+D=20, pdet=72.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=79.5%
+D=20, pdet=68.5%
+D=22, pdet=60.5%
+D=35, pdet=25.5%
+the learning rate: 5e-05
+Time used = 5476.641226768494
+Loading pure noise ...
+D=20, pdet=74.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.5%
+D=18, pdet=77.0%
+D=20, pdet=67.5%
+D=22, pdet=58.5%
+D=35, pdet=20.5%
+Epoch 346/450, Training Loss: 3.327e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5490.0050258636475
+Loading pure noise ...
+D=20, pdet=77.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=88.0%
+D=18, pdet=69.5%
+D=20, pdet=59.5%
+D=22, pdet=53.5%
+D=35, pdet=15.5%
+the learning rate: 5e-05
+Time used = 5503.660963773727
+Loading pure noise ...
+D=20, pdet=78.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.5%
+D=18, pdet=75.5%
+D=20, pdet=64.0%
+D=22, pdet=56.00000000000001%
+D=35, pdet=18.0%
+the learning rate: 5e-05
+Time used = 5516.657234430313
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed87_norm.npz
+Loading pure noise ...
+D=20, pdet=71.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.0%
+D=18, pdet=75.5%
+D=20, pdet=64.5%
+D=22, pdet=56.49999999999999%
+D=35, pdet=18.0%
+Epoch 349/450, Training Loss: 3.496e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5538.814438581467
+Loading pure noise ...
+D=20, pdet=74.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.5%
+D=18, pdet=77.0%
+D=20, pdet=67.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=19.5%
+the learning rate: 5e-05
+Time used = 5551.831079006195
+Loading pure noise ...
+D=20, pdet=76.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=92.0%
+D=18, pdet=74.5%
+D=20, pdet=63.0%
+D=22, pdet=56.00000000000001%
+D=35, pdet=18.0%
+the learning rate: 5e-05
+Time used = 5568.105907917023
+Loading pure noise ...
+D=20, pdet=76.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=87.5%
+D=18, pdet=71.5%
+D=20, pdet=60.5%
+D=22, pdet=53.5%
+D=35, pdet=17.0%
+Epoch 352/450, Training Loss: 3.278e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5581.015294313431
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed88_norm.npz
+Loading pure noise ...
+D=20, pdet=70.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.0%
+D=15, pdet=77.5%
+D=18, pdet=60.5%
+D=20, pdet=53.5%
+D=22, pdet=45.5%
+D=35, pdet=6.0%
+the learning rate: 5e-05
+Time used = 5602.606417894363
+Loading pure noise ...
+D=20, pdet=75.2%
+Validation:
+D=9, pdet=99.5%
+D=12, pdet=83.0%
+D=15, pdet=64.5%
+D=18, pdet=52.0%
+D=20, pdet=43.5%
+D=22, pdet=36.0%
+D=35, pdet=1.0%
+the learning rate: 5e-05
+Time used = 5615.680437326431
+Loading pure noise ...
+D=20, pdet=78.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=79.0%
+D=20, pdet=68.5%
+D=22, pdet=61.0%
+D=35, pdet=25.0%
+Epoch 355/450, Training Loss: 3.165e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5629.183618068695
+Loading pure noise ...
+D=20, pdet=78.8%
+Validation:
+D=9, pdet=96.5%
+D=12, pdet=67.5%
+D=15, pdet=52.0%
+D=18, pdet=37.0%
+D=20, pdet=25.0%
+D=22, pdet=21.0%
+D=35, pdet=0.5%
+the learning rate: 5e-05
+Time used = 5641.870119571686
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed89_norm.npz
+Loading pure noise ...
+D=20, pdet=67.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=80.5%
+D=20, pdet=70.0%
+D=22, pdet=62.5%
+D=35, pdet=28.000000000000004%
+the learning rate: 5e-05
+Time used = 5663.5873646736145
+Loading pure noise ...
+D=20, pdet=72.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.0%
+D=18, pdet=77.5%
+D=20, pdet=68.5%
+D=22, pdet=59.5%
+D=35, pdet=24.5%
+Epoch 358/450, Training Loss: 3.422e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5676.767118930817
+Loading pure noise ...
+D=20, pdet=76.0%
+Validation:
+D=9, pdet=85.0%
+D=12, pdet=55.50000000000001%
+D=15, pdet=37.5%
+D=18, pdet=23.0%
+D=20, pdet=11.5%
+D=22, pdet=11.0%
+D=35, pdet=0.5%
+the learning rate: 5e-05
+Time used = 5695.872560739517
+Loading pure noise ...
+D=20, pdet=75.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=96.0%
+D=15, pdet=75.5%
+D=18, pdet=59.5%
+D=20, pdet=52.0%
+D=22, pdet=45.0%
+D=35, pdet=5.0%
+the learning rate: 5e-05
+Time used = 5709.169168710709
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed90_norm.npz
+Loading pure noise ...
+D=20, pdet=70.19999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.0%
+D=20, pdet=68.5%
+D=22, pdet=59.5%
+D=35, pdet=23.0%
+Epoch 361/450, Training Loss: 3.409e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5730.764501571655
+Loading pure noise ...
+D=20, pdet=75.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=79.0%
+D=20, pdet=67.5%
+D=22, pdet=61.0%
+D=35, pdet=24.0%
+the learning rate: 5e-05
+Time used = 5743.522492170334
+Loading pure noise ...
+D=20, pdet=77.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.5%
+D=18, pdet=75.5%
+D=20, pdet=62.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=17.5%
+the learning rate: 5e-05
+Time used = 5756.343611240387
+Loading pure noise ...
+D=20, pdet=76.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.0%
+D=18, pdet=77.5%
+D=20, pdet=68.0%
+D=22, pdet=60.0%
+D=35, pdet=23.0%
+Epoch 364/450, Training Loss: 3.181e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5769.100199222565
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed91_norm.npz
+Loading pure noise ...
+D=20, pdet=71.5%
+Validation:
+D=9, pdet=97.5%
+D=12, pdet=67.5%
+D=15, pdet=52.0%
+D=18, pdet=38.5%
+D=20, pdet=27.500000000000004%
+D=22, pdet=24.0%
+D=35, pdet=0.5%
+the learning rate: 5e-05
+Time used = 5791.335280179977
+Loading pure noise ...
+D=20, pdet=74.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=92.0%
+D=18, pdet=73.0%
+D=20, pdet=61.0%
+D=22, pdet=56.00000000000001%
+D=35, pdet=16.5%
+the learning rate: 5e-05
+Time used = 5804.401994228363
+Loading pure noise ...
+D=20, pdet=77.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.0%
+D=18, pdet=78.5%
+D=20, pdet=67.0%
+D=22, pdet=57.49999999999999%
+D=35, pdet=20.0%
+Epoch 367/450, Training Loss: 3.256e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5817.847101688385
+Loading pure noise ...
+D=20, pdet=78.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=94.0%
+D=18, pdet=77.0%
+D=20, pdet=65.0%
+D=22, pdet=56.99999999999999%
+D=35, pdet=20.0%
+the learning rate: 5e-05
+Time used = 5831.360406160355
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed92_norm.npz
+Loading pure noise ...
+D=20, pdet=72.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=78.0%
+D=20, pdet=67.0%
+D=22, pdet=58.5%
+D=35, pdet=21.5%
+the learning rate: 5e-05
+Time used = 5855.249539136887
+Loading pure noise ...
+D=20, pdet=71.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=78.0%
+D=20, pdet=67.0%
+D=22, pdet=60.0%
+D=35, pdet=20.0%
+Epoch 370/450, Training Loss: 3.327e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5871.8060297966
+Loading pure noise ...
+D=20, pdet=76.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.0%
+D=18, pdet=78.5%
+D=20, pdet=68.0%
+D=22, pdet=61.0%
+D=35, pdet=23.0%
+the learning rate: 5e-05
+Time used = 5886.07625079155
+Loading pure noise ...
+D=20, pdet=78.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=95.5%
+D=18, pdet=78.5%
+D=20, pdet=66.0%
+D=22, pdet=59.5%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 5900.684416055679
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed93_norm.npz
+Loading pure noise ...
+D=20, pdet=69.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.5%
+D=18, pdet=76.5%
+D=20, pdet=63.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=20.0%
+Epoch 373/450, Training Loss: 3.389e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5924.199293613434
+Loading pure noise ...
+D=20, pdet=74.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=68.5%
+D=22, pdet=60.5%
+D=35, pdet=21.5%
+the learning rate: 5e-05
+Time used = 5938.584095954895
+Loading pure noise ...
+D=20, pdet=75.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=67.5%
+D=22, pdet=59.5%
+D=35, pdet=22.5%
+the learning rate: 5e-05
+Time used = 5952.769149065018
+Loading pure noise ...
+D=20, pdet=77.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=75.0%
+D=20, pdet=62.0%
+D=22, pdet=56.49999999999999%
+D=35, pdet=17.5%
+Epoch 376/450, Training Loss: 3.182e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 5967.372238874435
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed94_norm.npz
+Loading pure noise ...
+D=20, pdet=74.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.5%
+D=15, pdet=84.0%
+D=18, pdet=66.5%
+D=20, pdet=56.00000000000001%
+D=22, pdet=51.0%
+D=35, pdet=13.5%
+the learning rate: 5e-05
+Time used = 5991.593448877335
+Loading pure noise ...
+D=20, pdet=73.8%
+Validation:
+D=9, pdet=98.0%
+D=12, pdet=72.0%
+D=15, pdet=56.49999999999999%
+D=18, pdet=41.5%
+D=20, pdet=33.5%
+D=22, pdet=28.000000000000004%
+D=35, pdet=0.5%
+the learning rate: 5e-05
+Time used = 6005.60605430603
+Loading pure noise ...
+D=20, pdet=75.4%
+Validation:
+D=9, pdet=95.5%
+D=12, pdet=67.0%
+D=15, pdet=49.5%
+D=18, pdet=37.0%
+D=20, pdet=23.0%
+D=22, pdet=21.0%
+D=35, pdet=0.5%
+Epoch 379/450, Training Loss: 3.221e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6020.520142793655
+Loading pure noise ...
+D=20, pdet=79.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=76.0%
+D=20, pdet=62.5%
+D=22, pdet=58.5%
+D=35, pdet=18.0%
+Replace best val model at epoch 379
+the learning rate: 5e-05
+Time used = 6034.5974333286285
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed95_norm.npz
+Loading pure noise ...
+D=20, pdet=72.0%
+Validation:
+D=9, pdet=97.5%
+D=12, pdet=71.0%
+D=15, pdet=54.0%
+D=18, pdet=42.5%
+D=20, pdet=31.0%
+D=22, pdet=25.0%
+D=35, pdet=0.5%
+the learning rate: 5e-05
+Time used = 6058.429809331894
+Loading pure noise ...
+D=20, pdet=75.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=77.5%
+D=20, pdet=65.0%
+D=22, pdet=59.0%
+D=35, pdet=20.0%
+Epoch 382/450, Training Loss: 3.270e-04, Validation Loss: 2.331e+03
+Replace best val model at epoch 381
+the learning rate: 5e-05
+Time used = 6071.68474817276
+Loading pure noise ...
+D=20, pdet=78.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=65.5%
+D=22, pdet=60.5%
+D=35, pdet=21.5%
+the learning rate: 5e-05
+Time used = 6084.756730556488
+Loading pure noise ...
+D=20, pdet=79.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.0%
+D=20, pdet=66.0%
+D=22, pdet=59.5%
+D=35, pdet=21.0%
+the learning rate: 5e-05
+Time used = 6099.9397695064545
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed96_norm.npz
+Loading pure noise ...
+D=20, pdet=72.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=85.0%
+D=18, pdet=68.5%
+D=20, pdet=56.99999999999999%
+D=22, pdet=52.5%
+D=35, pdet=13.5%
+Epoch 385/450, Training Loss: 3.398e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6122.9036231040955
+Loading pure noise ...
+D=20, pdet=76.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=87.5%
+D=15, pdet=64.0%
+D=18, pdet=55.00000000000001%
+D=20, pdet=45.5%
+D=22, pdet=38.5%
+D=35, pdet=2.0%
+the learning rate: 5e-05
+Time used = 6137.106343269348
+Loading pure noise ...
+D=20, pdet=79.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=88.0%
+D=18, pdet=70.0%
+D=20, pdet=57.99999999999999%
+D=22, pdet=54.0%
+D=35, pdet=14.000000000000002%
+the learning rate: 5e-05
+Time used = 6149.990547180176
+Loading pure noise ...
+D=20, pdet=80.80000000000001%
+Validation:
+D=9, pdet=85.0%
+D=12, pdet=52.0%
+D=15, pdet=32.0%
+D=18, pdet=19.0%
+D=20, pdet=9.5%
+D=22, pdet=7.5%
+D=35, pdet=0.0%
+Epoch 388/450, Training Loss: 3.166e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6164.291295289993
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed97_norm.npz
+Loading pure noise ...
+D=20, pdet=74.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=78.0%
+D=20, pdet=65.5%
+D=22, pdet=60.0%
+D=35, pdet=20.0%
+the learning rate: 5e-05
+Time used = 6187.260188579559
+Loading pure noise ...
+D=20, pdet=75.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=95.0%
+D=18, pdet=77.5%
+D=20, pdet=64.5%
+D=22, pdet=60.0%
+D=35, pdet=19.5%
+the learning rate: 5e-05
+Time used = 6201.360198736191
+Loading pure noise ...
+D=20, pdet=78.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=89.5%
+D=18, pdet=72.0%
+D=20, pdet=60.5%
+D=22, pdet=55.50000000000001%
+D=35, pdet=16.0%
+Epoch 391/450, Training Loss: 3.233e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6214.443806409836
+Loading pure noise ...
+D=20, pdet=81.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=79.0%
+D=20, pdet=67.0%
+D=22, pdet=59.5%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 6227.555319309235
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed98_norm.npz
+Loading pure noise ...
+D=20, pdet=68.8%
+Validation:
+D=9, pdet=99.0%
+D=12, pdet=74.0%
+D=15, pdet=56.49999999999999%
+D=18, pdet=44.5%
+D=20, pdet=33.5%
+D=22, pdet=26.5%
+D=35, pdet=1.0%
+the learning rate: 5e-05
+Time used = 6250.51650094986
+Loading pure noise ...
+D=20, pdet=73.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=68.0%
+D=22, pdet=62.0%
+D=35, pdet=20.5%
+Epoch 394/450, Training Loss: 3.288e-04, Validation Loss: 2.331e+03
+Replace best val model at epoch 393
+the learning rate: 5e-05
+Time used = 6263.433422803879
+Loading pure noise ...
+D=20, pdet=75.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=88.0%
+D=18, pdet=72.0%
+D=20, pdet=58.5%
+D=22, pdet=54.0%
+D=35, pdet=15.0%
+Replace best val model at epoch 394
+the learning rate: 5e-05
+Time used = 6277.50612616539
+Loading pure noise ...
+D=20, pdet=77.3%
+Validation:
+D=9, pdet=98.0%
+D=12, pdet=73.5%
+D=15, pdet=57.49999999999999%
+D=18, pdet=42.0%
+D=20, pdet=33.5%
+D=22, pdet=26.5%
+D=35, pdet=1.0%
+the learning rate: 5e-05
+Time used = 6296.722634315491
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed99_norm.npz
+Loading pure noise ...
+D=20, pdet=72.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=77.0%
+D=20, pdet=65.0%
+D=22, pdet=58.5%
+D=35, pdet=18.5%
+Epoch 397/450, Training Loss: 3.356e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6320.073333978653
+Loading pure noise ...
+D=20, pdet=74.1%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.0%
+D=15, pdet=84.5%
+D=18, pdet=68.5%
+D=20, pdet=56.49999999999999%
+D=22, pdet=52.5%
+D=35, pdet=14.000000000000002%
+the learning rate: 5e-05
+Time used = 6333.582633972168
+Loading pure noise ...
+D=20, pdet=78.7%
+Validation:
+D=9, pdet=88.0%
+D=12, pdet=57.49999999999999%
+D=15, pdet=39.0%
+D=18, pdet=26.0%
+D=20, pdet=11.0%
+D=22, pdet=14.499999999999998%
+D=35, pdet=0.5%
+the learning rate: 5e-05
+Time used = 6346.459479808807
+Loading pure noise ...
+D=20, pdet=79.10000000000001%
+Validation:
+D=9, pdet=95.0%
+D=12, pdet=66.0%
+D=15, pdet=51.5%
+D=18, pdet=37.0%
+D=20, pdet=21.0%
+D=22, pdet=20.5%
+D=35, pdet=1.0%
+Epoch 400/450, Training Loss: 3.137e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6361.288075208664
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed100_norm.npz
+Loading pure noise ...
+D=20, pdet=69.69999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.0%
+D=18, pdet=77.5%
+D=20, pdet=67.0%
+D=22, pdet=59.5%
+D=35, pdet=20.0%
+the learning rate: 5e-05
+Time used = 6383.6074957847595
+Loading pure noise ...
+D=20, pdet=72.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=79.0%
+D=20, pdet=68.0%
+D=22, pdet=61.5%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 6396.787745952606
+Loading pure noise ...
+D=20, pdet=77.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=92.5%
+D=18, pdet=72.5%
+D=20, pdet=60.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=16.5%
+Epoch 403/450, Training Loss: 3.256e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6411.322993516922
+Loading pure noise ...
+D=20, pdet=78.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.5%
+D=18, pdet=74.0%
+D=20, pdet=60.5%
+D=22, pdet=56.99999999999999%
+D=35, pdet=17.5%
+the learning rate: 5e-05
+Time used = 6424.889123916626
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed101_norm.npz
+Loading pure noise ...
+D=20, pdet=70.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=79.0%
+D=20, pdet=68.5%
+D=22, pdet=61.5%
+D=35, pdet=21.0%
+the learning rate: 5e-05
+Time used = 6446.8192756175995
+Loading pure noise ...
+D=20, pdet=75.5%
+Validation:
+D=9, pdet=85.5%
+D=12, pdet=52.0%
+D=15, pdet=33.0%
+D=18, pdet=20.0%
+D=20, pdet=9.5%
+D=22, pdet=6.5%
+D=35, pdet=0.0%
+Epoch 406/450, Training Loss: 3.277e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6460.237112522125
+Loading pure noise ...
+D=20, pdet=77.10000000000001%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.0%
+D=18, pdet=76.0%
+D=20, pdet=61.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=18.0%
+the learning rate: 5e-05
+Time used = 6476.984662532806
+Loading pure noise ...
+D=20, pdet=78.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=94.0%
+D=18, pdet=75.5%
+D=20, pdet=62.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=19.0%
+the learning rate: 5e-05
+Time used = 6489.96835899353
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed102_norm.npz
+Loading pure noise ...
+D=20, pdet=70.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=67.0%
+D=22, pdet=60.0%
+D=35, pdet=24.5%
+Epoch 409/450, Training Loss: 3.403e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6513.06810426712
+Loading pure noise ...
+D=20, pdet=74.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=77.5%
+D=20, pdet=66.5%
+D=22, pdet=58.5%
+D=35, pdet=20.0%
+the learning rate: 5e-05
+Time used = 6528.302037000656
+Loading pure noise ...
+D=20, pdet=77.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.5%
+D=18, pdet=78.5%
+D=20, pdet=67.5%
+D=22, pdet=60.5%
+D=35, pdet=21.5%
+the learning rate: 5e-05
+Time used = 6542.093555450439
+Loading pure noise ...
+D=20, pdet=79.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=78.0%
+D=20, pdet=66.5%
+D=22, pdet=60.0%
+D=35, pdet=21.5%
+Epoch 412/450, Training Loss: 3.181e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6555.185741662979
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed103_norm.npz
+Loading pure noise ...
+D=20, pdet=73.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=94.5%
+D=18, pdet=74.5%
+D=20, pdet=61.0%
+D=22, pdet=55.00000000000001%
+D=35, pdet=16.0%
+the learning rate: 5e-05
+Time used = 6577.258952617645
+Loading pure noise ...
+D=20, pdet=78.9%
+Validation:
+D=9, pdet=99.5%
+D=12, pdet=80.0%
+D=15, pdet=59.0%
+D=18, pdet=47.5%
+D=20, pdet=37.5%
+D=22, pdet=30.5%
+D=35, pdet=1.0%
+the learning rate: 5e-05
+Time used = 6590.596326589584
+Loading pure noise ...
+D=20, pdet=80.0%
+Validation:
+D=9, pdet=92.5%
+D=12, pdet=61.5%
+D=15, pdet=44.5%
+D=18, pdet=31.5%
+D=20, pdet=17.0%
+D=22, pdet=13.0%
+D=35, pdet=0.5%
+Epoch 415/450, Training Loss: 3.214e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6603.80383348465
+Loading pure noise ...
+D=20, pdet=81.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=77.5%
+D=20, pdet=66.5%
+D=22, pdet=60.0%
+D=35, pdet=19.5%
+the learning rate: 5e-05
+Time used = 6617.198819160461
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed104_norm.npz
+Loading pure noise ...
+D=20, pdet=73.2%
+Validation:
+D=9, pdet=99.0%
+D=12, pdet=76.0%
+D=15, pdet=59.5%
+D=18, pdet=47.5%
+D=20, pdet=38.5%
+D=22, pdet=28.999999999999996%
+D=35, pdet=0.5%
+the learning rate: 5e-05
+Time used = 6639.649201631546
+Loading pure noise ...
+D=20, pdet=77.10000000000001%
+Validation:
+D=9, pdet=98.5%
+D=12, pdet=75.0%
+D=15, pdet=59.5%
+D=18, pdet=43.0%
+D=20, pdet=32.0%
+D=22, pdet=28.499999999999996%
+D=35, pdet=1.0%
+Epoch 418/450, Training Loss: 3.257e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6653.003437042236
+Loading pure noise ...
+D=20, pdet=79.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.0%
+D=18, pdet=78.5%
+D=20, pdet=68.5%
+D=22, pdet=60.5%
+D=35, pdet=21.5%
+the learning rate: 5e-05
+Time used = 6667.296934127808
+Loading pure noise ...
+D=20, pdet=79.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=67.0%
+D=22, pdet=57.99999999999999%
+D=35, pdet=21.5%
+the learning rate: 5e-05
+Time used = 6680.6543753147125
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed105_norm.npz
+Loading pure noise ...
+D=20, pdet=69.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.5%
+D=18, pdet=79.0%
+D=20, pdet=68.5%
+D=22, pdet=60.0%
+D=35, pdet=23.5%
+Epoch 421/450, Training Loss: 3.341e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6704.421345233917
+Loading pure noise ...
+D=20, pdet=75.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=66.0%
+D=22, pdet=60.5%
+D=35, pdet=25.0%
+the learning rate: 5e-05
+Time used = 6717.579669237137
+Loading pure noise ...
+D=20, pdet=76.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=93.5%
+D=18, pdet=77.0%
+D=20, pdet=64.5%
+D=22, pdet=58.5%
+D=35, pdet=18.5%
+the learning rate: 5e-05
+Time used = 6730.693011045456
+Loading pure noise ...
+D=20, pdet=78.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=79.0%
+D=20, pdet=67.5%
+D=22, pdet=60.0%
+D=35, pdet=24.5%
+Epoch 424/450, Training Loss: 3.123e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6745.303309679031
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed106_norm.npz
+Loading pure noise ...
+D=20, pdet=69.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=67.5%
+D=22, pdet=59.5%
+D=35, pdet=21.5%
+the learning rate: 5e-05
+Time used = 6768.743971586227
+Loading pure noise ...
+D=20, pdet=70.39999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=78.5%
+D=20, pdet=68.5%
+D=22, pdet=59.5%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 6782.014226436615
+Loading pure noise ...
+D=20, pdet=78.4%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.5%
+D=18, pdet=78.5%
+D=20, pdet=69.0%
+D=22, pdet=59.0%
+D=35, pdet=22.5%
+Epoch 427/450, Training Loss: 3.253e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6795.573298454285
+Loading pure noise ...
+D=20, pdet=77.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=82.0%
+D=18, pdet=63.5%
+D=20, pdet=56.00000000000001%
+D=22, pdet=48.0%
+D=35, pdet=12.0%
+the learning rate: 5e-05
+Time used = 6808.513985157013
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed107_norm.npz
+Loading pure noise ...
+D=20, pdet=72.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.5%
+D=18, pdet=79.0%
+D=20, pdet=68.0%
+D=22, pdet=60.5%
+D=35, pdet=23.5%
+the learning rate: 5e-05
+Time used = 6830.527434825897
+Loading pure noise ...
+D=20, pdet=75.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.5%
+D=18, pdet=79.0%
+D=20, pdet=68.5%
+D=22, pdet=60.5%
+D=35, pdet=22.5%
+Epoch 430/450, Training Loss: 3.267e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6843.732909202576
+Loading pure noise ...
+D=20, pdet=78.3%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.5%
+D=18, pdet=79.5%
+D=20, pdet=69.5%
+D=22, pdet=62.5%
+D=35, pdet=26.0%
+the learning rate: 5e-05
+Time used = 6856.900480031967
+Loading pure noise ...
+D=20, pdet=78.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.5%
+D=18, pdet=79.0%
+D=20, pdet=67.0%
+D=22, pdet=59.0%
+D=35, pdet=22.0%
+the learning rate: 5e-05
+Time used = 6874.485727310181
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed108_norm.npz
+Loading pure noise ...
+D=20, pdet=70.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=95.5%
+D=18, pdet=77.5%
+D=20, pdet=64.5%
+D=22, pdet=59.0%
+D=35, pdet=21.0%
+Epoch 433/450, Training Loss: 3.426e-04, Validation Loss: 2.331e+03
+the learning rate: 5e-05
+Time used = 6897.645715236664
+Loading pure noise ...
+D=20, pdet=75.2%
+Validation:
+D=9, pdet=83.5%
+D=12, pdet=51.5%
+D=15, pdet=30.5%
+D=18, pdet=19.5%
+D=20, pdet=8.0%
+D=22, pdet=6.5%
+D=35, pdet=0.0%
+the learning rate: 2.5e-05
+Time used = 6911.233699798584
+Loading pure noise ...
+D=20, pdet=76.8%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=96.0%
+D=18, pdet=79.0%
+D=20, pdet=67.5%
+D=22, pdet=59.5%
+D=35, pdet=24.5%
+the learning rate: 2.5e-05
+Time used = 6924.601912498474
+Loading pure noise ...
+D=20, pdet=77.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=94.5%
+D=18, pdet=76.0%
+D=20, pdet=63.0%
+D=22, pdet=56.99999999999999%
+D=35, pdet=18.0%
+Epoch 436/450, Training Loss: 3.192e-04, Validation Loss: 2.331e+03
+Replace best val model at epoch 435
+the learning rate: 2.5e-05
+Time used = 6938.950240135193
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed109_norm.npz
+Loading pure noise ...
+D=20, pdet=74.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.0%
+D=18, pdet=79.0%
+D=20, pdet=68.5%
+D=22, pdet=61.0%
+D=35, pdet=25.0%
+the learning rate: 2.5e-05
+Time used = 6962.287286281586
+Loading pure noise ...
+D=20, pdet=75.5%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=97.0%
+D=15, pdet=75.0%
+D=18, pdet=60.0%
+D=20, pdet=48.5%
+D=22, pdet=46.5%
+D=35, pdet=4.5%
+the learning rate: 2.5e-05
+Time used = 6975.262157201767
+Loading pure noise ...
+D=20, pdet=76.3%
+Validation:
+D=9, pdet=92.5%
+D=12, pdet=61.5%
+D=15, pdet=44.5%
+D=18, pdet=30.5%
+D=20, pdet=17.5%
+D=22, pdet=14.000000000000002%
+D=35, pdet=0.0%
+Epoch 439/450, Training Loss: 3.195e-04, Validation Loss: 2.331e+03
+the learning rate: 2.5e-05
+Time used = 6988.432085037231
+Loading pure noise ...
+D=20, pdet=79.7%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.0%
+D=18, pdet=78.5%
+D=20, pdet=68.0%
+D=22, pdet=60.5%
+D=35, pdet=24.0%
+Replace best val model at epoch 439
+the learning rate: 2.5e-05
+Time used = 7002.447287797928
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed110_norm.npz
+Loading pure noise ...
+D=20, pdet=71.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=80.5%
+D=15, pdet=59.5%
+D=18, pdet=50.0%
+D=20, pdet=37.5%
+D=22, pdet=30.5%
+D=35, pdet=1.5%
+the learning rate: 2.5e-05
+Time used = 7024.729043483734
+Loading pure noise ...
+D=20, pdet=75.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.0%
+D=18, pdet=78.5%
+D=20, pdet=67.5%
+D=22, pdet=60.5%
+D=35, pdet=23.0%
+Epoch 442/450, Training Loss: 3.227e-04, Validation Loss: 2.331e+03
+the learning rate: 2.5e-05
+Time used = 7038.191594839096
+Loading pure noise ...
+D=20, pdet=76.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=85.0%
+D=15, pdet=63.5%
+D=18, pdet=54.0%
+D=20, pdet=42.5%
+D=22, pdet=36.5%
+D=35, pdet=1.5%
+the learning rate: 2.5e-05
+Time used = 7052.667414665222
+Loading pure noise ...
+D=20, pdet=78.9%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.0%
+D=18, pdet=79.5%
+D=20, pdet=69.0%
+D=22, pdet=63.0%
+D=35, pdet=25.5%
+the learning rate: 2.5e-05
+Time used = 7066.20138502121
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed111_norm.npz
+Loading pure noise ...
+D=20, pdet=71.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=80.0%
+D=18, pdet=62.5%
+D=20, pdet=52.5%
+D=22, pdet=48.5%
+D=35, pdet=8.0%
+Epoch 445/450, Training Loss: 3.348e-04, Validation Loss: 2.331e+03
+the learning rate: 2.5e-05
+Time used = 7088.972928524017
+Loading pure noise ...
+D=20, pdet=76.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=93.5%
+D=15, pdet=73.0%
+D=18, pdet=59.5%
+D=20, pdet=48.0%
+D=22, pdet=44.5%
+D=35, pdet=4.5%
+the learning rate: 2.5e-05
+Time used = 7101.962004184723
+Loading pure noise ...
+D=20, pdet=76.6%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=99.5%
+D=15, pdet=84.5%
+D=18, pdet=68.5%
+D=20, pdet=57.49999999999999%
+D=22, pdet=50.0%
+D=35, pdet=14.000000000000002%
+the learning rate: 2.5e-05
+Time used = 7115.984676837921
+Loading pure noise ...
+D=20, pdet=78.0%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=95.0%
+D=15, pdet=74.0%
+D=18, pdet=59.5%
+D=20, pdet=49.0%
+D=22, pdet=44.5%
+D=35, pdet=4.5%
+Epoch 448/450, Training Loss: 3.184e-04, Validation Loss: 2.331e+03
+the learning rate: 2.5e-05
+Time used = 7129.300283432007
+Using /scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/500Hz/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n1000_seed112_norm.npz
+Loading pure noise ...
+D=20, pdet=72.89999999999999%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=100.0%
+D=15, pdet=97.0%
+D=18, pdet=78.5%
+D=20, pdet=69.0%
+D=22, pdet=61.0%
+D=35, pdet=26.0%
+the learning rate: 2.5e-05
+Time used = 7151.810440778732
+Loading pure noise ...
+D=20, pdet=76.2%
+Validation:
+D=9, pdet=100.0%
+D=12, pdet=98.0%
+D=15, pdet=80.0%
+D=18, pdet=62.5%
+D=20, pdet=54.0%
+D=22, pdet=48.0%
+D=35, pdet=9.0%
+the learning rate: 2.5e-05
+Time used = 7164.685196876526
+Done.

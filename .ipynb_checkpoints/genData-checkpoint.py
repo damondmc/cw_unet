@@ -1,0 +1,405 @@
+#!/home/damoncht/.conda/envs/ml/bin/python
+import numpy as np
+import pyfstat
+from pyfstat.utils import get_sft_as_arrays
+import logging
+import argparse
+from tqdm import tqdm 
+from multiprocessing import Pool, cpu_count
+import time
+import subprocess
+from collections import defaultdict
+
+def genSampleParam(hnoise, f1min, f1max, nSample):
+    """
+    Generate parameters for a given number of random samples.
+
+    Parameters:
+    - hnoise (float): Noise level, corresponding to the square root spectral density of the detector.
+    - f1min, f1max (float): Frequency derivative range for parameter sampling.
+    - nSample (int): Number of random samples.
+
+    Returns:
+    - params (list): List of parameter combinations for signal generation.
+    """
+    print("Sample generation.")
+    f1_arr = np.random.uniform(f1min, f1max, nSample)
+    phi_arr = np.random.uniform(0, 2*np.pi, nSample)
+    psi_arr = np.random.uniform(0, np.pi, nSample)
+    cosi_arr = np.random.uniform(-1, 1, nSample)
+    
+    alpha_arr = np.random.uniform(0, 2*np.pi, nSample)
+    sinDelta = np.random.uniform(-1 , 1, nSample)
+    delta_arr = np.arcsin(sinDelta)
+
+    # hnoise is effectively the sensitivity depth given h0=1
+    if hnoise is None:
+        hnoise_list = [10, 15, 20, 25, 30, 40]
+    else:
+        hnoise_list = hnoise
+    
+    #print('hnoise_list=', hnoise_list)
+    
+    params = []
+    
+    for i in range(nSample):
+        for hn in hnoise_list:
+            # Append each set of parameters as a list
+            params.append([
+                f1_arr[i],
+                cosi_arr[i],
+                phi_arr[i],
+                psi_arr[i],
+                alpha_arr[i],
+                delta_arr[i],
+                hn
+            ])
+    return params
+def _genSampleParam(hnoise, f1min, f1max, nSample):
+    """
+    Generate parameters for a given number of random samples.
+
+    Parameters:
+    - hnoise (float): Noise level, corresponding to the square root spectral density of the detector.
+    - f1min, f1max (float): Frequency derivative range for parameter sampling.
+    - nSample (int): Number of random samples.
+
+    Returns:
+    - params (list): List of parameter combinations for signal generation.
+    """
+    print("Sample generation.")
+    f1_arr = np.random.uniform(f1min, f1max, nSample)
+    phi_arr = np.random.uniform(0, 2*np.pi, nSample)
+    psi_arr = np.random.uniform(0, np.pi, nSample)
+    cosi_arr = np.random.uniform(-1, 1, nSample)
+    
+    alpha_arr = np.random.uniform(0, 2*np.pi, nSample)
+    sinDelta = np.random.uniform(-1 , 1, nSample)
+    delta_arr = np.arcsin(sinDelta)
+
+    # hnoise is effectively the sensitivity depth given h0=1
+    if hnoise is None:
+        hnoise_list = [10, 15, 20, 25, 30, 40]
+    else:
+        hnoise_list = hnoise
+    
+    #print('hnoise_list=', hnoise_list)
+    
+    params = []
+    for hn in hnoise_list:
+        for i in range(nSample):
+            # Append each set of parameters as a list
+            params.append([
+                f1_arr[i],
+                cosi_arr[i],
+                phi_arr[i],
+                psi_arr[i],
+                alpha_arr[i],
+                delta_arr[i],
+                hn
+            ])
+    return params
+
+def simNoise(sqrtSn=1, Tsft=7200, size=(256,128), ndet=2, norm=True):
+    """
+    Generates Gaussian noise in the frequency domain with given parameters.
+
+    Parameters:
+        Tsft (float): Total time duration for Fourier transform.
+        size (tuple): Shape of each dataset in the form (num_bins, num_segments).
+        ndet (int): Number of detector.
+
+    Returns:
+        np.ndarray: Generated noise data with shape (num_segments, num_bins, 2*ndet).
+    """
+    num_bins, num_segments = size
+    # sigma in time domain = 1 and therefor in complex domain (real + imag), the variance is half of the original one 
+    sigma = 0.5 * sqrtSn * np.sqrt(Tsft)  # Variance for real and imaginary parts 
+
+    dataset = np.empty((num_bins, num_segments, 2*ndet))
+    for i in range(ndet):  # Two time series
+        dataset[...,2*i] = np.random.normal(0, sigma, size)
+        dataset[...,2*i+1] = np.random.normal(0, sigma, size)
+        
+    if norm:
+        return normalize(dataset)
+    else:
+        return dataset
+    
+
+
+def simSignal(label, homedir, jobID, h0, hnoise, f0, f1, ra, dec, cosi, psi, phi, obsTime, startTime, det='H1', bandWidth=0.2, Tsft=7200, WindowType="tukey", WindowParam=0.01):
+    """
+    Simulate a CW signal and return its spectrogram.
+
+    Parameters:
+    - jobID (int): Unique ID for the signal generation task.
+    - h0 (float): Amplitude of the gravitational wave signal.
+    - hnoise (float): Noise level of the detector.
+    - f0 (float): Frequency of the signal.
+    - f1 (float): Frequency derivative of the signal.
+    - ra, dec (float): Right ascension and declination of the signal source.
+    - cosi, psi, phi (float): Inclination, polarization angle, and initial phase.
+    - obsTime (int): Observation time in seconds.
+    - startTime (int): Start time for the observation.
+    - det (str): Detector name (e.g., 'H1', 'L1').
+    - bandWidth (float): Frequency band width.
+    - Tsft (int): Time segment length for the SFT.
+    - WindowType (str): Window type for SFT.
+    - WindowParam (float): Window parameter for SFT.
+
+    Returns:
+    - list: [frequency array, timestamp array, Fourier data array].
+    """
+    simlabel = '{}sim{}{}'.format(label, jobID, det)
+
+    writer_kwargs = {
+        "label": simlabel,
+        "outdir": homedir+simlabel,
+        "tstart": startTime,
+        "duration": obsTime,
+        "detectors": det,
+        "sqrtSX": hnoise,
+        "Tsft": Tsft,
+        "SFTWindowType": WindowType,
+        "SFTWindowParam": WindowParam,
+    }
+    signal_parameters = {
+        "F0": f0,
+        "F1": f1,
+        "Alpha": ra,
+        "Delta": dec,
+        "h0": h0,
+        "cosi": cosi,
+        "psi": psi,
+        "phi": phi,
+        "tref": writer_kwargs["tstart"]+obsTime/2,
+        "Band": bandWidth,
+    }
+
+    writer = pyfstat.Writer(**writer_kwargs, **signal_parameters)
+    writer.make_data()
+    frequency, timestamps, fourier_data = get_sft_as_arrays(writer.sftfilepath)
+
+    #print("{} done.".format(jobID))
+    command = 'rm -r {}'.format(homedir+simlabel)
+    
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return [frequency, timestamps, fourier_data]
+
+# Assuming genGridParam, genSampleParam, and simSignal are pre-defined functions
+def generate_mock_cw_signals(label, params, f0=500, obsTime=921600, num_cpus=8, band=0.426, Tsft=7200, h0=1, startTime=1368970000,
+                             nSample=800, homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/'):
+    """
+    Generate mock continuous wave signals based on input arguments.
+
+    Parameters:
+    args (argparse.Namespace): Parsed command-line arguments.
+    """
+    # Configure logger
+    logging.getLogger('pyfstat').setLevel(logging.CRITICAL)
+
+    # Simulate signals for H1 detector
+    data1 = simulate_signals(label, homedir, params, h0, f0, obsTime, startTime, band, Tsft, num_cpus, 'H1')
+    
+    # Simulate signals for L1 detector
+    data2 = simulate_signals(label, homedir, params, h0, f0, obsTime, startTime, band, Tsft, num_cpus, 'L1')
+
+    return data1, data2
+
+def simulate_signals(label, homedir, params, h0, f0, obsTime, startTime, band, Tsft, num_cpus, detector):
+    """
+    Simulate signals using multiprocessing.
+
+    Parameters:
+    detector (str): 'H1' or 'L1'.
+
+    Returns:
+    dict: Simulated data.
+    """
+    t0 = time.time()
+    with Pool(processes=num_cpus) as pool:
+        results = pool.starmap(simSignal, [
+            (label, homedir, i, h0, hnoise, f0, f1, ra, dec, cosi, psi, phi, obsTime, startTime, detector, band, Tsft)
+            for i, (f1, cosi, psi, phi, ra, dec, hnoise) in enumerate(params)
+        ])
+
+    data = defaultdict(list)
+    for i, _data in enumerate(results):
+        h0_value = params[i][6]  # h0 is the 7th element of params
+        data[h0_value].append({
+            'frequency': _data[0],
+            'timestamps': _data[1],
+            'fourier_data': _data[2]
+        })
+
+    size1, size2 = _data[-1][detector].shape
+    data['params'] = params
+    return {str(key): value for key, value in data.items()}
+
+# def normalize(data):
+
+#     """
+#     Normalizes each channel of the image independently.
+    
+#     Parameters:
+#         image (numpy.ndarray): Input image of shape (m, n, c).
+    
+#     Returns:
+#         numpy.ndarray: Normalized image of the same shape.
+#     """
+#     normalized_image = (data - np.min(data)) / (np.max(data) - np.min(data))
+#     normalized_image = normalized_image * 2 - 1  # Scale to [-1, 1]
+
+#     #xmax = np.max(data, axis=(0, 1), keepdims=True)
+#     #xmin = np.min(data, axis=(0, 1), keepdims=True)    
+#     #normalized_image = (data - xmin) / (xmax-xmin) * 2 - 1
+#     return normalized_image
+
+
+def normalize(data):
+    """
+    Normalizes each image using the global min and max across all channels.
+    Supports single images (m, n, c) or batches (num, m, n, c).
+    
+    Parameters:
+        data (numpy.ndarray): Input image(s) with shape (m, n, c) or (num, m, n, c).
+    
+    Returns:
+        numpy.ndarray: Normalized image(s) with the same shape, scaled to [-1, 1].
+    """
+    # Ensure input is a 3D or 4D array
+    if data.ndim not in (3, 4):
+        raise ValueError("Input must be a 3D array (m, n, c) or 4D array (num, m, n, c)")
+    
+    # Compute min and max across all channels
+    if data.ndim == 3:
+        # Single image: min/max over all pixels and channels
+        xmin = np.min(data, keepdims=True)
+        xmax = np.max(data, keepdims=True)
+    else:
+        # Batch of images: min/max per image across all pixels and channels
+        xmin = np.min(data, axis=(1, 2, 3), keepdims=True)
+        xmax = np.max(data, axis=(1, 2, 3), keepdims=True)
+    
+    # Avoid division by zero by setting denominator to 1 where max equals min
+    denom = xmax - xmin
+    #denom = np.where(denom == 0, 1, denom)
+    
+    # Normalize to [0, 1] per image, then scale to [-1, 1]
+    normalized_data = (data - xmin) / denom
+    normalized_data = normalized_data * 2 - 1
+    
+    return normalized_data
+
+# Prepare clean images and masks
+def prepare_images_and_masks(signal_data1, signal_data2, num_per_h0, size, threshold):
+    mask = np.zeros((num_per_h0, size[0], size[1], 4), dtype=bool)
+    clean_image_set = np.zeros((num_per_h0, size[0], size[1], 4))
+
+    for i in tqdm(range(num_per_h0)):
+        # Process H1 data
+        h1_data = signal_data1[i]['fourier_data']['H1']
+        real_h1, imag_h1 = h1_data.real, h1_data.imag
+        mask[i, :, :, 0] = np.abs(real_h1) >= threshold
+        mask[i, :, :, 1] = np.abs(imag_h1) >= threshold
+        #clean_image_set[i, :, :, 0] = normalize(real_h1)
+        #clean_image_set[i, :, :, 1] = normalize(imag_h1)
+        clean_image_set[i, :, :, 0] = real_h1
+        clean_image_set[i, :, :, 1] = imag_h1
+
+        # Process L1 data
+        l1_data = signal_data2[i]['fourier_data']['L1']
+        real_l1, imag_l1 = l1_data.real, l1_data.imag
+        mask[i, :, :, 2] = np.abs(real_l1) >= threshold
+        mask[i, :, :, 3] = np.abs(imag_l1) >= threshold
+#        clean_image_set[i, :, :, 2] = normalize(real_l1)
+#        clean_image_set[i, :, :, 3] = normalize(imag_l1)
+        clean_image_set[i, :, :, 2] = real_l1
+        clean_image_set[i, :, :, 3] = imag_l1
+    return clean_image_set, mask
+
+# Generate augmented image set
+def generate_augmented_set(random_offsets, clean_image_set, mask, freq_size, num_per_h0, size):
+    new_clean_image_set = np.zeros((random_offsets.size, freq_size, size[1], 4))
+    new_mask = np.zeros((random_offsets.size, freq_size, size[1], 4), dtype=bool)
+
+    for i in tqdm(range(random_offsets.size)):
+        #freq_center = size[0] // 2
+        # Find all (y, x, c) coordinates where arr is True
+        true_indices = np.argwhere(mask[i])  # Shape (N, 3), where N is the number of True values
+        # Find closest freq-bin to top and bottom across all channels
+        bottom_freq = np.min(true_indices[:, 0])  # Smallest y (closest to top)
+        top_freq = np.max(true_indices[:, 0])  # Largest y (closest to bottom)
+        f_band = top_freq - bottom_freq
+        offset = freq_size - f_band
+        start_idx = bottom_freq-int(random_offsets[i]*offset)
+
+        
+        new_clean_image_set[i] = clean_image_set[i, start_idx:start_idx + freq_size, :, :]
+        new_mask[i] = mask[i, start_idx:start_idx + freq_size, :, :]
+
+    return new_clean_image_set, new_mask
+
+# Generate noisy image sets for each h0 value
+def generate_noisy_image_set(random_offsets, data1, data2, h0_values, mask, freq_size, num_per_h0, size):
+    noisy_image_set = {}
+
+    for h0i in h0_values:
+        print(f"Processing h0={h0i}")
+        h0_images = np.zeros((num_per_h0, freq_size, size[1], 4))
+
+        signal_data1 = data1[str(int(h0i))]
+        signal_data2 = data2[str(int(h0i))]
+
+        for i in tqdm(range(num_per_h0)):
+            true_indices = np.argwhere(mask[i])  # Shape (N, 3), where N is the number of True values
+
+            # Find closest freq-bin to top and bottom across all channels
+            bottom_freq = np.min(true_indices[:, 0])  # Smallest y (closest to top)
+            top_freq = np.max(true_indices[:, 0])  # Largest y (closest to bottom)
+            f_band = top_freq - bottom_freq
+            offset = freq_size - f_band
+            start_idx = bottom_freq-int(random_offsets[i]*offset)
+            
+            h1_data = signal_data1[i]['fourier_data']['H1']
+            l1_data = signal_data2[i]['fourier_data']['L1']
+
+            h0_images[i] = np.stack([
+                h1_data.real,
+                h1_data.imag,
+                l1_data.real,
+                l1_data.imag
+            ], axis=-1)[start_idx:start_idx + freq_size, :, :]
+            h0_images[i] = normalize(h0_images[i])
+        noisy_image_set[str(int(h0i))] = h0_images
+
+    return noisy_image_set
+
+def crop_signal_img(data_h1, data_l1, freq_size=256, threshold=100):
+    h0_values = np.delete(np.unique(np.array(data_h1['params'])[:, -1]), 0)
+    num_per_h0 = len(data_h1['0'])
+    size = data_h1['0'][0]['fourier_data']['H1'].shape
+    # Prepare images and masks
+    clean_image_set, mask = prepare_images_and_masks(data_h1['0'], data_l1['0'], num_per_h0, size, threshold)
+
+    #random_offsets = np.random.randint(-signal_frequencyBand//7, signal_frequencyBand//7, num_per_h0)
+    #random_offsets = np.random.randint(-5, 5, num_per_h0)
+    random_offsets = np.random.uniform(0, 1, num_per_h0)
+    
+    # Generate augmented clean images and masks
+    new_clean_image_set, new_mask = generate_augmented_set(random_offsets, clean_image_set, mask, freq_size, num_per_h0, size)
+
+    # Generate noisy image set
+    new_noisy_image_set = generate_noisy_image_set(random_offsets, data_h1, data_l1, h0_values, mask, freq_size, num_per_h0, size)
+
+    # Save dataset
+    dataset = {
+        'noisy_image': {k: v for k, v in new_noisy_image_set.items()},
+        'signal_mask': new_mask,
+        'clean_image': new_clean_image_set
+    }
+    
+    return dataset
+
+
