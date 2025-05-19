@@ -43,7 +43,7 @@ max_val_levels = [0, 9, 12, 15, 18, 20, 22, 35]
 
 #max_val_levels = [0, 15,20]
 
-label = '{}HzTD{}{}Day{}Tsft{}n{}s{}th{}'.format(f0, int(max_train_levels[0]), int(max_train_levels[-1]), int(obsTime//86400), Tsft, n_data, n_step, threshold)
+label = '{}HzTD{}{}Day{}Tsft{}n{}s{}th{}halfnoise'.format(f0, int(max_train_levels[0]), int(max_train_levels[-1]), int(obsTime//86400), Tsft, n_data, n_step, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 
@@ -105,7 +105,7 @@ best_pdet_model = None
 train_losses = []
 val_losses = []
 
-num_epochs = 450
+num_epochs = 1000
 
 print(model)
 
@@ -125,7 +125,7 @@ for epoch in tqdm(range(num_epochs)):
 
         print('Loading pure noise ...')
         filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_n1000_seed{0}.npz'.format(seed)
-        data = np.load(filename, allow_pickle=True)['dataset']
+        data = np.load(filename, allow_pickle=True)['dataset'][:500]
         noise = normalize(data)
         noise_dataset = load_noise_dataset(noise)
 

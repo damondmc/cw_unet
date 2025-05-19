@@ -39,6 +39,7 @@ class UNet(nn.Module):
         ])
         # Output layer
         self.output_layer = nn.Conv2d(size_filter_in, output_channels, kernel_size=1)
+        
 
     def conv_block(self, in_channels, out_channels, kernel_init):
         return nn.Sequential(

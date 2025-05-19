@@ -40,6 +40,17 @@ class UNet(nn.Module):
         # Output layer
         self.output_layer = nn.Conv2d(size_filter_in, output_channels, kernel_size=1)
         
+        # Classification head
+        self.classification_head = nn.Sequential(
+            nn.Conv2d(size_filter_in, size_filter_in // 2, kernel_size=3, padding=1),
+            nn.BatchNorm2d(size_filter_in // 2),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d((1, 1)),  # Global average pooling
+            nn.Flatten(),
+            nn.Linear(size_filter_in // 2, 1),  # Binary classification (signal vs. noise)
+            nn.Sigmoid()  # Output probability
+        ) 
+        
 
     def conv_block(self, in_channels, out_channels, kernel_init):
         return nn.Sequential(
@@ -77,6 +88,16 @@ class UNet(nn.Module):
             x = layer(x)
         # Output
         x = self.output_layer(x)
-        return torch.tanh(x)
+        
+        
+        # Denoising output
+        denoised = self.output_layer(x)
+        denoised = torch.tanh(denoised)  # Apply tanh as before
+        
+        # Classification output
+        class_output = self.classification_head(x)  # Apply classification head on decoder output
+        
+        return denoised, class_output
+        #return torch.tanh(x)
         #return x
     
