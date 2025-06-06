@@ -3,6 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
 
+"""
+Source: https://github.com/LeeJunHyun/Image_Segmentation.git
+"""
+
 def init_weights(net, init_type='normal', gain=0.02):
     """Initialize network weights using specified initialization method.
     
