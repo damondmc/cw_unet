@@ -307,13 +307,17 @@ def load_noise_dataset(images):
     masks_tensor = torch.tensor(masks, dtype=torch.bool).permute(0, 3, 1, 2)
     labels_tensor = torch.tensor(labels, dtype=torch.float64)
 
+    #print(images_tensor.shape)
+    #print(targets_tensor.shape)
+    #print(masks_tensor.shape)
+    #print(labels_tensor.shape)
     # Create the full dataset
     full_dataset = TensorDataset(images_tensor, targets_tensor, masks_tensor, labels_tensor)
     
     return full_dataset
 
 
-def load_signal_datasetv2(targets, masks, noise, factor):
+def load_signal_datasetv2(images, targets, masks, labels):
     """
     Load the full dataset once at the beginning, including noisy and pure noise images.
     Store indices for each noise level for easy selection during training.
@@ -329,17 +333,12 @@ def load_signal_datasetv2(targets, masks, noise, factor):
         noise_level_indices (dict): A dictionary storing indices for each noise level.
     """
 
-    # Process pure noise data
-    images = noise * factor + targets
-    labels = [factor] * images.shape[0]  # Extend labels
-
     # Convert to torch tensors
     images_tensor = torch.tensor(images, dtype=torch.float32).permute(0, 3, 1, 2)
     targets_tensor = torch.tensor(targets, dtype=torch.float32).permute(0, 3, 1, 2)
     masks_tensor = torch.tensor(masks, dtype=torch.bool).permute(0, 3, 1, 2)
     labels_tensor = torch.tensor(labels, dtype=torch.float64)
-
-    # Create the full dataset
+    
     full_dataset = TensorDataset(images_tensor, targets_tensor, masks_tensor, labels_tensor)
     
     return full_dataset
@@ -399,7 +398,7 @@ def load_signal_dataset(data, noise_levels_to_sample):
     return dataset
 
 
-def make_data_loader(signal_dataset, noise_dataset, batch_size=8):
+def make_data_loader(dataset, batch_size=8, shuffle=True):
     """
     Update the train and validation data loaders based on the selected noise levels.
 
@@ -415,7 +414,7 @@ def make_data_loader(signal_dataset, noise_dataset, batch_size=8):
     """
     
     # Create DataLoaders 
-    data = ConcatDataset([signal_dataset, noise_dataset])
-    data_loader = DataLoader(data, batch_size=batch_size, shuffle=True)
+    data = ConcatDataset(dataset)
+    data_loader = DataLoader(data, batch_size=batch_size, shuffle=shuffle)
 
     return data_loader

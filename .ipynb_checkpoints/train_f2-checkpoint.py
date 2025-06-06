@@ -60,17 +60,14 @@ tmpdir = homedir + 'tmp/'
 size = (freq_size, obsTime // Tsft)
 n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 n_step = args.n_step
+
 threshold = 50
 
 # Initial noise levels and total possible noise levels 
-max_train_levels = [20]
-max_val_levels = [0, 9, 12, 15, 18, 20, 22, 35]
+max_train_levels = [5]
+max_val_levels = [5, 9, 12, 15, 18, 20, 35]
 
-# max_val_levels = [0, 6, 9, 12, 15, 18, 20, 
-#                   22, 24, 26, 30, 40, 60]
-
-#max_val_levels = [0, 15,20]
-label = 'UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[-1]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
+label = 'fast_UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 
@@ -92,39 +89,69 @@ print(f"Beta (noise): {beta}")
 # Initialize dictionaries to store `pdet` by noise level
 train_pdet = {noise_level: [] for noise_level in max_train_levels}
 val_pdet = {noise_level: [] for noise_level in max_val_levels}
-val_pdet2 = {noise_level: [] for noise_level in max_val_levels}
-
-
 batch_size = 8
 
-filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{}x{}_n1000_seed300.npz'.format(size[0], size[1])
-data = np.load(filename, allow_pickle=True)['dataset']
-#noise = np.stack(noise)
-noise = normalize(data)
-noise_dataset = load_noise_dataset(noise)
+# filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{}x{}_n1000_seed300.npz'.format(size[0], size[1])
+# noise = np.load(filename, allow_pickle=True)['dataset']
+# noise = normalize(noise)
+# noise_dataset = load_noise_dataset(noise)
 
-#### gengerate validation data
+
 # Set random seed for reproducibility
+# filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{}x{}_n1000_seed299.npz'.format(size[0], size[1])
+# noise = np.load(filename, allow_pickle=True)['dataset'][:400]
 
-#filename = '/scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_norm.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
-filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_norm.npz'.format(f0, size[0], size[1], Tsft, 120, 400)
+filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_seed0.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
+targets = np.load(filename, allow_pickle=True)['clean_image']
+masks = np.load(filename, allow_pickle=True)['signal_mask']
+targets = normalize(targets)
 
-data = np.load(filename, allow_pickle=True)
 
-signal_dataset = load_signal_dataset(data, max_val_levels)
-del data
-val_loader = make_data_loader([signal_dataset, noise_dataset], batch_size=batch_size)
-del signal_dataset
+data = []
+mask_data = []
+target_data = []
+label_data = []
+for Sn in max_val_levels:
+    noise = np.empty((targets.shape[0],) + size + (4,))
+    for i in range(noise.shape[0]):
+        noise[i] = simNoise(sqrtSn=Sn, Tsft=Tsft, size=size, ndet=2, norm=False)
 
-filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_norm.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
+    data.append(normalize(noise + targets))
+    mask_data.append(masks)
+    target_data.append(targets)
+    labels = [Sn] * noise.shape[0]  # Extend labels
+    label_data.append(labels)
+    
+data = np.concatenate(data)
+mask_data = np.concatenate(mask_data)
+target_data = np.concatenate(target_data)
+label_data = np.concatenate(label_data)
+data = load_signal_datasetv2(data, target_data, mask_data, label_data)
+    
+    
+noise = np.empty((1000,) + size + (4,))
+for i in range(noise.shape[0]):
+    noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
+noise = normalize(noise)
+noise_data = load_noise_dataset(noise)
 
-data = np.load(filename, allow_pickle=True)
+val_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
-signal_dataset = load_signal_dataset(data, max_val_levels)
-val_loader2 = make_data_loader([signal_dataset, noise_dataset], batch_size=batch_size)
-del signal_dataset
+# load clean signal data 
+target_datasets = []
+mask_datasets = []
+# Load n datasets based on different seeds
+for i in range(n_data):  # Iterate over n datasets
+    filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/{0}Hz/{0}Hz_H1L1_D0-{4}_{2}x{3}_{5}s_4c_traindata_n1000_seed{1}.npz'.format(f0, i, size[0], size[1], 20, Tsft)
+    print("Using {}".format(filename))
+    targets = np.load(filename, allow_pickle=True)['clean_image']
+    masks = np.load(filename, allow_pickle=True)['signal_mask']
+    target_datasets.append(targets)
+    mask_datasets.append(masks)
+    
+target_datasets  = np.concatenate(target_datasets)
+mask_datasets = np.concatenate(mask_datasets)
 
-#del signal_dataset, noise_dataset
 
 # Initialize the model
 size_filter_in = 16
@@ -132,12 +159,11 @@ dropout_prob = 0.0 # 0.1
 # 16, 0.3 version 1
 model = UNet(input_channels=4, output_channels=4, size_filter_in=size_filter_in, dropout_prob=dropout_prob).to(device)
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
-#criterion = torch.nn.L1Loss(reduction='none')  # Default loss function
 
 # Initialize the optimizer
 lr=1e-4
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=100)
+scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=1000)
 
 # Initialize variables to store the top models and their losses
 best_val_loss = float('inf')
@@ -145,10 +171,6 @@ best_val_model = None
 
 best_pdet = 0.0
 best_pdet_model = None
-
-
-best_pdet2 = 0.0
-best_pdet_model2 = None
 
 train_losses = []
 train_mse_signal = []
@@ -158,45 +180,36 @@ val_losses = []
 val_mse_signal = []
 val_mse_noise = []
 
-val_losses2 = []
-val_mse_signal2 = []
-val_mse_noise2 = []
-
-
-num_epochs = 500
+num_epochs = 1000
 print(model)
 
 for epoch in tqdm(range(num_epochs)):   
     if epoch % n_step == 0:
-        datasets = []
+        # generate gaussian noise
+        noise = np.empty((target_datasets.shape[0],) + size + (4,))
+        for i in range(target_datasets.shape[0]):
+            noise[i] = simNoise(sqrtSn=max_train_levels[0], Tsft=Tsft, size=size, ndet=2, norm=False)
+        
+        # add noise into clean signal 
+        data = normalize(target_datasets + noise)
+        label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
+        data = load_signal_datasetv2(data, target_datasets, mask_datasets, label_data)
+        
+        # load pure noise training data
+        #seed = (epoch // n_step) % 300  # Generate unique seed for each dataset
+        #filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{0}x{1}_n1000_seed{2}.npz'.format(size[0], size[1], seed)
+        #print('Using pure noise {} ...'.format(filename))
+        #noise = np.load(filename, allow_pickle=True)['dataset']
+        #noise = normalize(noise)
+        #noise_data = load_noise_dataset(noise)
+        
+        noise = np.empty((1000,) + size + (4,))
+        for i in range(noise.shape[0]):
+            noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
+        noise = normalize(noise)
+        noise_data = load_noise_dataset(noise)
 
-        # Load n datasets based on different seeds
-        for i in range(n_data):  # Iterate over n datasets
-            seed = ((epoch // n_step) * n_data + i) % 300  # Generate unique seed for each dataset
-            # if threshold != 50:
-            #     filename = '/scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/{0}Hz/{0}Hz_H1L1_D0-{5}_{3}x{4}_7200s_4c_traindata_n1000_seed{1}_th{2}_norm.npz'.format(f0, seed, threshold, size[0], size[1], 20)
-            # else:
-            #     filename = '/scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/{0}Hz/{0}Hz_H1L1_D0-{4}_{2}x{3}_7200s_4c_traindata_n1000_seed{1}_norm.npz'.format(f0, seed, size[0], size[1], 20)
-
-            if threshold != 50:
-                filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/{0}Hz/{0}Hz_H1L1_D0-{5}_{3}x{4}_{6}s_4c_traindata_n1000_seed{1}_th{2}_norm.npz'.format(f0, seed, threshold, size[0], size[1], 20, Tsft)
-            else:
-                filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/{0}Hz/{0}Hz_H1L1_D0-{4}_{2}x{3}_{5}s_4c_traindata_n1000_seed{1}_norm.npz'.format(f0, seed, size[0], size[1], 20, Tsft)
-
-            print("Using {}".format(filename))
-            data = np.load(filename, allow_pickle=True)
-            signal_data = load_signal_dataset(data, max_train_levels)
-            datasets.append(signal_dataset)
-
-        seed = (epoch // n_step) % 300  # Generate unique seed for each dataset
-        filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{0}x{1}_n1000_seed{2}.npz'.format(size[0], size[1], seed)
-        print('Using pure noise {} ...'.format(filename))
-        data = np.load(filename, allow_pickle=True)['dataset']
-        noise = normalize(data)
-        noise = load_noise_dataset(noise)
-        datasets.append(noise)
-
-        train_loader = make_data_loader([signal_dataset, noise_dataset], batch_size=batch_size)
+        train_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
     # Training phase
     running_train_loss = 0.0
@@ -208,6 +221,7 @@ for epoch in tqdm(range(num_epochs)):
     model.train()
     for inputs, targets, mask, labels in train_loader:
         inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+        
         optimizer.zero_grad()
         
         # Forward pass
@@ -238,13 +252,9 @@ for epoch in tqdm(range(num_epochs)):
 
     
     # Validation phase
-    print("Validation:")
     running_val_loss = 0.0
     running_val_mse_signal = 0.0
     running_val_mse_noise = 0.0
-    running_val_loss2 = 0.0
-    running_val_mse_signal2 = 0.0
-    running_val_mse_noise2 = 0.0
     model.eval()
     with torch.no_grad():
         val_det = []
@@ -265,38 +275,12 @@ for epoch in tqdm(range(num_epochs)):
             val_det.append(detection_stats)
             val_label.append(labels)
             
-            
-        val_det2 = []
-        val_label2 = []
-        
-        for inputs, targets, mask, labels in val_loader2: 
-            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
-
-            denoised = model(inputs)
-            total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta)  # Use training threshold for loss
-
-            #running_val_loss += val_loss.item()
-            running_val_loss2 += total_loss.item()
-            running_val_mse_signal2 += mse_signal.item()
-            running_val_mse_noise2 += mse_noise.item()
-            
-            detection_stats = compute_detection_statistic(denoised.detach())
-            val_det2.append(detection_stats)
-            val_label2.append(labels)
-                        
     val_loss = running_val_loss / len(val_loader)
     val_mse_signal_epoch = running_val_mse_signal / len(val_loader)
     val_mse_noise_epoch = running_val_mse_noise / len(val_loader)
     val_losses.append(val_loss)
     val_mse_signal.append(val_mse_signal_epoch)
     val_mse_noise.append(val_mse_noise_epoch)
-    
-    val_loss2 = running_val_loss2 / len(val_loader2)
-    val_mse_signal_epoch = running_val_mse_signal2 / len(val_loader2)
-    val_mse_noise_epoch = running_val_mse_noise2 / len(val_loader2)
-    val_losses2.append(val_loss)
-    val_mse_signal2.append(val_mse_signal_epoch)
-    val_mse_noise2.append(val_mse_noise_epoch)
     
     # Compute Pdet as the fraction of signals passing the threshold
     train_det = np.concatenate(train_det, axis=0)
@@ -336,46 +320,22 @@ for epoch in tqdm(range(num_epochs)):
             pdet = np.nan
             val_pdet[noise_level].append(pdet) 
             
-    # Compute validation pdet by noise level
-    val_det2 = np.concatenate(val_det2, axis=0)
-    val_label2 = np.concatenate(val_label2, axis=0)    
-    
-    noise_det = val_det2[val_label2==np.float('inf')]
-    pfa = compute_threshold_from_pfa(noise_det)
-    
-    # Compute valing pdet by noise level
-    print('Validation:')
-    print('pfa th = ', pfa)
-    for noise_level in val_pdet2.keys():
-        signal_det = val_det2[val_label2 == float(noise_level)]
-        if signal_det.size != 0:
-            pdet2 = (signal_det > pfa).sum() / signal_det.size 
-            val_pdet2[noise_level].append(pdet2)
-            print("D={}, pdet={}%".format(noise_level, pdet2*100))
-        else:
-            pdet2 = np.nan
-            val_pdet2[noise_level].append(pdet2) 
-        
     #scheduler.step(val_loss)
     scheduler.step(val_pdet[max_val_levels[-1]][-1])
     # Print epoch loss every 5 epochs
     if epoch % 3 == 0:
-        print(f"Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_loss:.3e}, Validation Loss: {val_loss:.3e}, Validation2 Loss: {val_loss2:.3e}")
+        print(f"Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_loss:.3e}, Validation Loss: {val_loss:.3e}.")
 
     # Track the best model with the lowest training loss
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         best_val_model = model.state_dict()
-        print('Replace best val model at epoch {0}'.format(epoch))        
+        print('Replace best val model at epoch {0}'.format(epoch)) 
+        
     if pdet > best_pdet:
         best_pdet = pdet
         best_pdet_model = model.state_dict()
         print('Replace best pdet model at epoch {0}'.format(epoch))
-    if pdet2 > best_pdet2:
-        best_pdet2 = pdet2
-        best_pdet_model2 = model.state_dict()
-        print('Replace best pdet model 2 at epoch {0}'.format(epoch))
-
        
     # Print the learning rate
     current_lr = optimizer.param_groups[0]['lr']
@@ -392,15 +352,9 @@ val_losses = np.array(val_losses)
 val_mse_signal = np.array(val_mse_signal)
 val_mse_noise = np.array(val_mse_noise)
 
-val_losses2 = np.array(val_losses2)
-val_mse_signal2 = np.array(val_mse_signal2)
-val_mse_noise2 = np.array(val_mse_noise2)
-
 # Save the top validation models and the best training model
 torch.save(best_val_model, homedir+"trained_model/{0}Hz/best_val_model_{1}.pth".format(f0, version))
 torch.save(best_pdet_model, homedir+"trained_model/{0}Hz/best_pdet_model_{1}.pth".format(f0, version))
-torch.save(best_pdet_model2, homedir+"trained_model/{0}Hz/best_pdet_model2_{1}.pth".format(f0, version))
-
 
 # Save all losses in a single file
 losses = {
@@ -410,15 +364,10 @@ losses = {
     "val_losses": val_losses,
     "val_mse_signal": val_mse_signal,
     "val_mse_noise": val_mse_noise,
-    "val_losses2": val_losses2,
-    "val_mse_signal2": val_mse_signal2,
-    "val_mse_noise2": val_mse_noise2,
     "top_val_losses": best_val_loss,
     "train_pdet": train_pdet,
     "val_pdet": val_pdet,
-    "top_val_pdet": best_pdet,
-    "val_pdet2": val_pdet2,
-    "top_val_pdet2": best_pdet2,
+    "top_val_pdet": best_pdet
 }
 np.save(homedir+'trained_model/{0}Hz/losses_{1}.npy'.format(f0, version), losses)
 

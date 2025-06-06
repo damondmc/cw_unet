@@ -112,11 +112,11 @@ def simNoise(sqrtSn=1, Tsft=7200, size=(256,128), ndet=2, norm=True):
     Returns:
         np.ndarray: Generated noise data with shape (num_segments, num_bins, 2*ndet).
     """
-    num_bins, num_segments = size
+    #num_bins, num_segments = size
     # sigma in time domain = 1 and therefor in complex domain (real + imag), the variance is half of the original one 
     sigma = 0.5 * sqrtSn * np.sqrt(Tsft)  # Variance for real and imaginary parts 
 
-    dataset = np.empty((num_bins, num_segments, 2*ndet))
+    dataset = np.empty(size + (2*ndet,))
     for i in range(ndet):  # Two time series
         dataset[...,2*i] = np.random.normal(0, sigma, size)
         dataset[...,2*i+1] = np.random.normal(0, sigma, size)
@@ -237,27 +237,7 @@ def simulate_signals(label, homedir, params, h0, f0, obsTime, startTime, band, T
     data['params'] = params
     return {str(key): value for key, value in data.items()}
 
-# def normalize(data):
-
-#     """
-#     Normalizes each channel of the image independently.
-    
-#     Parameters:
-#         image (numpy.ndarray): Input image of shape (m, n, c).
-    
-#     Returns:
-#         numpy.ndarray: Normalized image of the same shape.
-#     """
-#     normalized_image = (data - np.min(data)) / (np.max(data) - np.min(data))
-#     normalized_image = normalized_image * 2 - 1  # Scale to [-1, 1]
-
-#     #xmax = np.max(data, axis=(0, 1), keepdims=True)
-#     #xmin = np.min(data, axis=(0, 1), keepdims=True)    
-#     #normalized_image = (data - xmin) / (xmax-xmin) * 2 - 1
-#     return normalized_image
-
-
-def normalize(data):
+def normalize(data, channel=False):
     """
     Normalizes each image using the global min and max across all channels.
     Supports single images (m, n, c) or batches (num, m, n, c).
@@ -274,14 +254,22 @@ def normalize(data):
     
     # Compute min and max across all channels
     if data.ndim == 3:
-        # Single image: min/max over all pixels and channels
-        xmin = np.min(data, keepdims=True)
-        xmax = np.max(data, keepdims=True)
+        if channel:
+            # Single image: min/max over all pixels and channels
+            xmin = np.min(data, axis=(0, 1), keepdims=True)
+            xmax = np.max(data, axis=(0, 1), keepdims=True)
+        else:
+            xmin = np.min(data, keepdims=True)
+            xmax = np.max(data, keepdims=True)
     else:
-        # Batch of images: min/max per image across all pixels and channels
-        xmin = np.min(data, axis=(1, 2, 3), keepdims=True)
-        xmax = np.max(data, axis=(1, 2, 3), keepdims=True)
-    
+        if channel:
+            # Single image: min/max over all pixels and channels
+            xmin = np.min(data, axis=(1, 2), keepdims=True)
+            xmax = np.max(data, axis=(1, 2), keepdims=True)
+        else:
+            xmin = np.min(data, axis=(1, 2, 3), keepdims=True)
+            xmax = np.max(data, axis=(1, 2, 3), keepdims=True)
+     
     # Avoid division by zero by setting denominator to 1 where max equals min
     denom = xmax - xmin
     #denom = np.where(denom == 0, 1, denom)
@@ -371,7 +359,7 @@ def generate_noisy_image_set(random_offsets, data1, data2, h0_values, mask, freq
                 l1_data.real,
                 l1_data.imag
             ], axis=-1)[start_idx:start_idx + freq_size, :, :]
-            h0_images[i] = normalize(h0_images[i])
+            h0_images[i] = h0_images[i]
         noisy_image_set[str(int(h0i))] = h0_images
 
     return noisy_image_set
@@ -402,4 +390,34 @@ def crop_signal_img(data_h1, data_l1, freq_size=256, threshold=100):
     
     return dataset
 
+
+def crop_noise_img(data1, data2, freq_size=256):
+    
+    l, w = data1['1'][0]['fourier_data']['H1'].shape
+    num_jobs = len(data1['1'])
+    noise = np.zeros((num_jobs, freq_size, w, 4))
+    data1 = data1['1']
+    data2 = data2['1']
+
+    randint = np.random.randint(10, l-freq_size*2, num_jobs)
+
+    for i in range(num_jobs):
+        fourier_data1 = data1[i]['fourier_data']['H1']
+        # Assuming `real_part` and `imaginary_part` are your extracted channels
+        real_channel1 = fourier_data1.real
+        imag_channel1 = fourier_data1.imag
+        # Stack the channels to create a 2-channel image
+
+
+        fourier_data2 = data2[i]['fourier_data']['L1']
+        # Assuming `real_part` and `imaginary_part` are your extracted channels
+        real_channel2 = fourier_data2.real
+        imag_channel2 = fourier_data2.imag
+        # Stack the channels to create a 2-channel image
+        image = np.stack((real_channel1, imag_channel1, real_channel2, imag_channel2), axis=-1)
+
+        start_index = randint[i]
+        noise[i] = image[start_index:start_index+freq_size, :, :]
+
+    return noise
 

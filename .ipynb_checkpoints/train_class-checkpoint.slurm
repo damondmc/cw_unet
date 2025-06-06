@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=unet_class
-#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/500Hz_th50_leakynormtanho_class_unet_10d_s1kstep2n1k_D20_Tsft7200.out
-#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/500Hz_th50_leakynormtanho_class_unet_10d_s1kstep2n1k_D20_Tsft7200.err
+#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/200Hz_th50_leakynormtanho_class_unet_10d_s1kstep3n1k_D20_Tsft7200v2.out
+#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/200Hz_th50_leakynormtanho_class_unet_10d_s1kstep3n1k_D20_Tsft7200v2.err
 #SBATCH --time=1-20:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -15,4 +15,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python train_classification.py --f0 500
+python train_classification_only_entropy.py --f0 200

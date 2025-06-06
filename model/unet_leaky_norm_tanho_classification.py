@@ -87,9 +87,8 @@ class UNet(nn.Module):
             x = torch.cat((x, encoder_memory.pop()), dim=1) # list.pop() remove and reurn the last element in the list
             x = layer(x)
         # Output
-        x = self.output_layer(x)
-        
-        
+        #x = self.output_layer(x)
+
         # Denoising output
         denoised = self.output_layer(x)
         denoised = torch.tanh(denoised)  # Apply tanh as before

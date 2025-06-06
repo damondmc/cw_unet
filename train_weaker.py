@@ -1,8 +1,9 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet_leaky_norm_tanho_classification import UNet
+from model.unet_leaky_norm_tanho import UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+import torch.nn.functional as F
 import time 
 import argparse
 
@@ -13,12 +14,15 @@ parser.add_argument('--Tsft', type=int, default=7200, help='SFT duration in seco
 parser.add_argument('--obsTime', type=int, default=921600, help='Observation time in seconds (default: 921600)')
 parser.add_argument('--freq_size', type=int, default=256, help='Frequency band size (default: 256)')
 parser.add_argument('--num_cpus', type=int, default=16, help='Number of CPUs to use (default: 20)')
+parser.add_argument('--n_step', type=int, default=3, help='Steps for each dataset to be trained.')
+parser.add_argument('--alpha', type=float, default=1, help='Weight for signal MSE in loss function.')
+parser.add_argument('--beta', type=float, default=1, help='Weight for noise MSE in loss function.')
+
 args = parser.parse_args()
 
 
-
 # Combined loss function with threshold-based labels
-def combined_loss(denoised, target, class_output, class_target, mask, threshold, alpha=1, beta=1, gamma=1):
+def combined_loss(denoised, target, mask, alpha=1, beta=1):
     # MSE for signal
     mse_signal = F.mse_loss(denoised * mask, target * mask, reduction='none')
     mse_signal = mse_signal.mean()
@@ -27,52 +31,12 @@ def combined_loss(denoised, target, class_output, class_target, mask, threshold,
     background_zeros = torch.zeros_like(denoised).to(denoised.device)
     mse_noise = F.mse_loss(denoised * (~mask), background_zeros * (~mask), reduction='none')
     mse_noise = mse_noise.mean()
-    
-    # Binary cross-entropy using threshold-based labels
-    thresholded_labels = (class_output.squeeze() > threshold).float()
-    class_loss = F.binary_cross_entropy(class_output.squeeze(), thresholded_labels)
-    
+
     # Combined loss
-    total_loss = alpha * mse_signal + beta * mse_noise + gamma * class_loss
-    return total_loss
+    total_loss = alpha * mse_signal + beta * mse_noise 
+    return total_loss, mse_signal, mse_noise
 
 
-def compute_threshold_from_pfa(noise_outputs, far=0.01):
-    """
-    Compute the threshold for a given false alarm rate (FAR) using noise class outputs.
-    
-    Args:
-        noise_outputs (np.ndarray): Array of class_output values (probabilities in [0,1]) for noise samples.
-        far (float): Desired false alarm rate (default: 0.01 for 1% FAR).
-    
-    Returns:
-        float: Threshold such that `far` proportion of noise samples exceed it.
-    """
-    if len(noise_outputs) == 0:
-        print("Warning: No noise outputs provided, returning default threshold 0.5")
-        return 0.5
-    
-    # Sort noise outputs in descending order
-    sorted_outputs = np.sort(noise_outputs)[::-1]
-    
-    # Compute index for 1% FAR (top 1% of noise outputs)
-    index = int(len(sorted_outputs) * far)
-    
-    # Handle edge cases
-    if index == 0:
-        print("Index = 0")
-        # If too few samples, return the maximum output or a default
-        return sorted_outputs[0] if len(sorted_outputs) > 0 else 0.5
-    elif index >= len(sorted_outputs):
-        print("Index >= len(sorted_outputs)")
-        # If index exceeds array length, return a small value
-        return sorted_outputs[-1] if len(sorted_outputs) > 0 else 0.5
-    
-    # Return the threshold at the 1% FAR
-    threshold = sorted_outputs[index]
-    return threshold
-    
-    
 t0 = time.time()
 print("Start")
 
@@ -87,21 +51,21 @@ Tsft = args.Tsft
 obsTime = args.obsTime
 freq_size = args.freq_size
 num_cpus = args.num_cpus
+alpha = args.alpha
+beta = args.beta
 
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/'
 tmpdir = homedir + 'tmp/'
 size = (freq_size, obsTime // Tsft)
 n_data = 1  # modify the load data method in the loop to allow n > 1
-n_step = 2
+n_step = args.n_step
 threshold = 50
 
 # Initial noise levels and total possible noise levels 
 max_train_levels = [20]
 max_val_levels = [0, 9, 12, 15, 18, 20, 22, 35]
-
 #max_val_levels = [0, 15,20]
-
-label = 'UNETwCLASS_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_th{}'.format(f0, int(max_train_levels[0]), int(max_train_levels[-1]), int(obsTime//86400), Tsft, n_data, n_step, threshold)
+label = 'UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[-1]), int(obsTime//86400), Tsft, n_data, n_step, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 
@@ -132,12 +96,12 @@ noise_dataset = load_noise_dataset(noise)
 #### gengerate validation data
 # Set random seed for reproducibility
 
-filename = '/scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/validation/500Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n200_seed0.npz'
+filename = '/scratch/kriles_root/kriles0/damoncht/unet_dyn_fastnoise/data/validation/{0}Hz_H1L1_D0-35_256x128_7200s_4c_traindata_n200_norm.npz'.format(f0)
 data = np.load(filename, allow_pickle=True)
 
 signal_dataset = load_signal_dataset(data, max_val_levels)
 del data
-val_loader = make_data_loader(signal_dataset, noise_dataset, batch_size=batch_size)
+val_loader = make_data_loader([signal_dataset, noise_dataset], batch_size=batch_size)
 #del signal_dataset, noise_dataset
 
 # Initialize the model
@@ -147,6 +111,26 @@ dropout_prob = 0.0 # 0.1
 model = UNet(input_channels=4, output_channels=4, size_filter_in=size_filter_in, dropout_prob=dropout_prob).to(device)
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 #criterion = torch.nn.L1Loss(reduction='none')  # Default loss function
+
+
+#best_model = torch.load("./trained_model/{0}Hz/best_val_model_{1}.pth".format(f0, version),weights_only=False)
+best_model = torch.load("./trained_model/{0}Hz/best_pdet_model_{1}.pth".format(f0, version),weights_only=False)
+
+model.load_state_dict(best_model)
+
+max_train_levels = [35]
+max_val_levels = [0, 9, 12, 15, 18, 20, 22, 35]
+# Initialize dictionaries to store `pdet` by noise level
+train_pdet = {noise_level: [] for noise_level in max_train_levels}
+val_pdet = {noise_level: [] for noise_level in max_val_levels}
+
+#max_val_levels = [0, 15,20]
+label = 'UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[-1]), int(obsTime//86400), Tsft, n_data, n_step, threshold)
+version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
+
+#model.eval()  # Set model to evaluation mode
+#model.to(device)
+
 
 # Initialize the optimizer
 lr=1e-4
@@ -161,10 +145,14 @@ best_pdet = 0.0
 best_pdet_model = None
 
 train_losses = []
+train_mse_signal = []
+train_mse_noise = []
 val_losses = []
+val_mse_signal = []
+val_mse_noise = []
+
 
 num_epochs = 1000
-
 print(model)
 
 for epoch in tqdm(range(num_epochs)):   
@@ -183,142 +171,120 @@ for epoch in tqdm(range(num_epochs)):
 
         print('Loading pure noise ...')
         filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_n1000_seed{0}.npz'.format(seed)
-        data = np.load(filename, allow_pickle=True)['dataset'][:500]
+        data = np.load(filename, allow_pickle=True)['dataset']
         noise = normalize(data)
         noise_dataset = load_noise_dataset(noise)
 
-        train_loader = make_data_loader(signal_dataset, noise_dataset, batch_size=batch_size)
+        train_loader = make_data_loader([signal_dataset, noise_dataset], batch_size=batch_size)
 
-        
-        
-    print("Training:")
-    # First Pass: Collect class_output for noise samples
-    model.eval()  # No gradients needed
-    noise_class_outputs = []
-    with torch.no_grad():
-        for inputs, _, _, labels in train_loader:
-            inputs = inputs.to(device)
-            _, class_output = model(inputs)
-            noise_mask = (labels == np.float('inf')).cpu().numpy()
-            if noise_mask.any():
-                noise_class_outputs.append(class_output.squeeze().cpu().numpy()[noise_mask])
-
-    # Compute 1% FAR threshold
-    inoise_class_outputs = np.concatenate(noise_class_outputs, axis=0)
-    far_threshold = compute_threshold_from_pfa(noise_class_outputs)  # Assumes 1% FAR
-    print(f"Epoch {epoch + 1}, Training FAR Threshold: {far_threshold:.4f}")
-          
-        
     # Training phase
-    model.train()
     running_train_loss = 0.0
+    running_train_mse_signal = 0.0
+    running_train_mse_noise = 0.0
     train_det = []
     train_label = []
+    
+    model.train()
     for inputs, targets, mask, labels in train_loader:
         inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
-        class_target = (labels != np.float('inf')).float().to(device)  # For pdet
         optimizer.zero_grad()
         
         # Forward pass
-        denoised, class_output = model(inputs)
-        loss = combined_loss(denoised, targets, class_output, class_target, mask, far_threshold)
+        denoised = model(inputs)
+        total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta)
         
         # Backward pass and optimization step
-        loss.backward()
+        total_loss.backward()
         optimizer.step()
 
         # Accumulate training loss
-        running_train_loss += loss.item()
+        running_train_loss += total_loss.item()
+        running_train_mse_signal += mse_signal.item()
+        running_train_mse_noise += mse_noise.item()
         
-        detection_stats = class_output.squeeze().detach()
-        train_det.append(detection_stats.cpu().numpy())
-        train_label.append(labels)
-        
-        detection_stats = compute_detection_statistic(outputs.detach())
-
         # Count signals and those passing the threshold
-        detection_stats = class_output.squeeze().detach()
-        train_det.append(detection_stats.cpu().numpy())
+        detection_stats = compute_detection_statistic(denoised.detach())
+        train_det.append(detection_stats)
         train_label.append(labels)
 
     # Calculate average training loss
     train_loss = running_train_loss / len(train_loader)
+    train_mse_signal_epoch = running_train_mse_signal / len(train_loader)
+    train_mse_noise_epoch = running_train_mse_noise / len(train_loader)
     train_losses.append(train_loss)
+    train_mse_signal.append(train_mse_signal_epoch)
+    train_mse_noise.append(train_mse_noise_epoch)
 
     
-    # Compute pdet using validation FAR threshold
+    # Validation phase
+    print("Validation:")
+    running_val_loss = 0.0
+    running_val_mse_signal = 0.0
+    running_val_mse_noise = 0.0
+    model.eval()
+    with torch.no_grad():
+        val_det = []
+        val_label = []
+        
+        for inputs, targets, mask, labels in val_loader: 
+            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+
+            denoised = model(inputs)
+            total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta)  # Use training threshold for loss
+
+            #running_val_loss += val_loss.item()
+            running_val_loss += total_loss.item()
+            running_val_mse_signal += mse_signal.item()
+            running_val_mse_noise += mse_noise.item()
+            
+            detection_stats = compute_detection_statistic(denoised.detach())
+            val_det.append(detection_stats)
+            val_label.append(labels)
+                        
+    val_loss = running_val_loss / len(val_loader)
+    val_mse_signal_epoch = running_val_mse_signal / len(val_loader)
+    val_mse_noise_epoch = running_val_mse_noise / len(val_loader)
+    val_losses.append(val_loss)
+    val_mse_signal.append(val_mse_signal_epoch)
+    val_mse_noise.append(val_mse_noise_epoch)
+    
+    # Compute Pdet as the fraction of signals passing the threshold
     train_det = np.concatenate(train_det, axis=0)
-    train_label = np.concatenate(train_label, axis=0)
-    noise_det = train_det[train_label == np.float('inf')]
+    train_label = np.concatenate(train_label, axis=0)    
     
-    pdet = (noise_det < far_threshold).sum() / noise_det.size 
-    print("D={}, pdet={}%".format('inf', pdet*100))
+    noise_det = train_det[train_label==np.float('inf')]
+    pfa = compute_threshold_from_pfa(noise_det)
     
+    # Compute training pdet by noise level
     for noise_level in train_pdet.keys():
         signal_det = train_det[train_label == float(noise_level)]
         if signal_det.size != 0:
-            pdet = (signal_det > far_threshold).sum() / signal_det.size 
+            pdet = (signal_det > pfa).sum() / signal_det.size 
             train_pdet[noise_level].append(pdet)
             print("D={}, pdet={}%".format(noise_level, pdet*100))
         else:
             pdet = np.nan
             train_pdet[noise_level].append(pdet)
-            
-    print("Validation:")
-    # First Pass (Validation): Collect class_output for noise samples
-    model.eval()
-    val_noise_class_outputs = []
-    with torch.no_grad():
-        for inputs, _, _, labels in val_loader:
-            inputs = inputs.to(device)
-            _, class_output = model(inputs)
-            noise_mask = (labels == np.float('inf')).cpu().numpy()
-            if noise_mask.any():
-                val_noise_class_outputs.append(class_output.squeeze().cpu().numpy()[noise_mask])
-
-    # Compute validation 1% FAR threshold
-    val_noise_class_outputs = np.concatenate(val_noise_class_outputs, axis=0)
-    val_far_threshold = compute_threshold_from_pfa(val_noise_class_outputs)
-    print(f"Epoch {epoch + 1}, Validation FAR Threshold: {val_far_threshold:.4f}")
         
-    running_val_loss = 0.0
-    val_det = []
-    val_label = []
-    with torch.no_grad():
-        for inputs, targets, mask, labels in val_loader: 
-            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
-            class_target = (labels != np.float('inf')).float().to(device)
-
-            denoised, class_output = model(inputs)
-            val_loss = combined_loss(denoised, targets, class_output, class_target, mask, far_threshold)  # Use training threshold for loss
-
-            running_val_loss += val_loss.item()
-            
-            detection_stats = class_output.squeeze().detach()
-            val_det.append(detection_stats.cpu().numpy())
-            val_label.append(labels)
-                        
-    # Calculate average validation loss
-    val_loss = running_val_loss / len(val_loader)
-    val_losses.append(val_loss)
-        
+    # Compute validation pdet by noise level
     val_det = np.concatenate(val_det, axis=0)
-    val_label = np.concatenate(val_label, axis=0)
-    noise_det = val_det[val_label == np.float('inf')]
-    pdet = (noise_det < far_threshold).sum() / noise_det.size 
-    print("D={}, pdet={}%".format('inf', pdet*100))
+    val_label = np.concatenate(val_label, axis=0)    
     
+    noise_det = val_det[val_label==np.float('inf')]
+    pfa = compute_threshold_from_pfa(noise_det)
+    
+    # Compute valing pdet by noise level
     print('Validation:')
     for noise_level in val_pdet.keys():
         signal_det = val_det[val_label == float(noise_level)]
         if signal_det.size != 0:
-            pdet = (signal_det > far_threshold).sum() / signal_det.size 
+            pdet = (signal_det > pfa).sum() / signal_det.size 
             val_pdet[noise_level].append(pdet)
             print("D={}, pdet={}%".format(noise_level, pdet*100))
         else:
             pdet = np.nan
             val_pdet[noise_level].append(pdet) 
-            
+        
     #scheduler.step(val_loss)
     scheduler.step(val_pdet[max_val_levels[-1]][-1])
     # Print epoch loss every 5 epochs
@@ -343,23 +309,32 @@ for epoch in tqdm(range(num_epochs)):
     if current_lr < 1e-4 / 2 **3:
         break
 
-train_losses =  np.array(train_losses)
+train_losses = np.array(train_losses)
+train_mse_signal = np.array(train_mse_signal)
+train_mse_noise = np.array(train_mse_noise)
+
 val_losses = np.array(val_losses)
+val_mse_signal = np.array(val_mse_signal)
+val_mse_noise = np.array(val_mse_noise)
 
 # Save the top validation models and the best training model
-torch.save(best_val_model, homedir+"trained_model/{0}Hz/best_val_model_{1}.pth".format(f0, version))
-torch.save(best_pdet_model, homedir+"trained_model/{0}Hz/best_pdet_model_{1}.pth".format(f0, version))
+torch.save(best_val_model, homedir+"trained_model/{0}Hz/best_val_model_{1}_train_weaker.pth".format(f0, version))
+torch.save(best_pdet_model, homedir+"trained_model/{0}Hz/best_pdet_model_{1}_train_weaker.pth".format(f0, version))
 
 
 # Save all losses in a single file
 losses = {
     "train_losses": train_losses,
+    "train_mse_signal": train_mse_signal,
+    "train_mse_noise": train_mse_noise,
     "val_losses": val_losses,
+    "val_mse_signal": val_mse_signal,
+    "val_mse_noise": val_mse_noise,
     "top_val_losses": best_val_loss,
     "train_pdet": train_pdet,
     "val_pdet": val_pdet,
     "top_val_pdet": best_pdet,
 }
-np.save(homedir+'trained_model/{0}Hz/losses_{1}.npy'.format(f0, version), losses)
+np.save(homedir+'trained_model/{0}Hz/losses_{1}_train_weaker.npy'.format(f0, version), losses)
 
 print("Done.")
