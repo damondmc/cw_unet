@@ -83,8 +83,6 @@ def _genSampleParam(hnoise, f1min, f1max, nSample):
     else:
         hnoise_list = hnoise
     
-    #print('hnoise_list=', hnoise_list)
-    
     params = []
     for hn in hnoise_list:
         for i in range(nSample):

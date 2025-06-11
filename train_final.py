@@ -6,6 +6,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
 import argparse
+from multiprocessing import Pool
 
 parser = argparse.ArgumentParser(description="Generate mock CW signal dataset.")
 parser.add_argument('--f0', type=int, default=500, help='Base frequency (default: 500)')
@@ -141,6 +142,7 @@ for i in range(n_data):  # Iterate over n datasets
 target_datasets  = np.concatenate(target_datasets)
 mask_datasets = np.concatenate(mask_datasets)
 
+ns = target_datasets.shape[0]
 
 # Initialize the model
 size_filter_in = 16
@@ -175,9 +177,18 @@ print(model)
 for epoch in tqdm(range(num_epochs)):   
     if epoch % n_step == 0:
         # generate gaussian noise
-        noise = np.empty((target_datasets.shape[0],) + size + (4,))
-        for i in range(target_datasets.shape[0]):
-            noise[i] = simNoise(sqrtSn=max_train_levels[0], Tsft=Tsft, size=size, ndet=2, norm=False)
+        with mp.Pool(processes=num_cpus) as pool:
+            _noise = pool.starmap(simNoise, 
+                                  [(max_train_levels[0], Tsft, size, 2, False, epoch*ns + i) 
+                                   for i in range(ns)])
+            
+        noise = np.empty((ns,) + size + (4,))
+        for i, _n in enumerate(_noise):
+            noise[i] = _n
+
+#         noise = np.empty((ns,) + size + (4,))
+#         for i in range(ns):
+#             noise[i] = simNoise(sqrtSn=max_train_levels[0], Tsft=Tsft, size=size, ndet=2, norm=False)
         
         # add noise into clean signal 
         data = normalize(target_datasets + noise)
@@ -185,8 +196,8 @@ for epoch in tqdm(range(num_epochs)):
         data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
         
         # # load pure noise training data        
-        # noise = np.empty((target_datasets.shape[0],) + size + (4,))
-        # for i in range(target_datasets.shape[0]):
+        # noise = np.empty((ns,) + size + (4,))
+        # for i in range(ns):
         #     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
         # noise = normalize(noise)
         # noise_data = load_noise_dataset(noise)
