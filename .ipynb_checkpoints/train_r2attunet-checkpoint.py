@@ -1,7 +1,7 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet import R2_UNet
+from model.unet import R2Att_UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
@@ -23,24 +23,18 @@ args = parser.parse_args()
 
 
 # Combined loss function with threshold-based labels
-def combined_loss(denoised, target, mask, alpha=1, beta=1, separate=True):
+def combined_loss(denoised, target, mask, alpha=1, beta=1):
     # MSE for signal
-    if separate:
-        mse_signal = F.mse_loss(denoised * mask, target * mask, reduction='none')
-        mse_signal = mse_signal.mean()
+    mse_signal = F.mse_loss(denoised * mask, target * mask, reduction='none')
+    mse_signal = mse_signal.mean()
     
-        # MSE for noise
-        background_zeros = torch.zeros_like(denoised).to(denoised.device)
-        mse_noise = F.mse_loss(denoised * (~mask), background_zeros * (~mask), reduction='none')
-        mse_noise = mse_noise.mean()
+    # MSE for noise
+    background_zeros = torch.zeros_like(denoised).to(denoised.device)
+    mse_noise = F.mse_loss(denoised * (~mask), background_zeros * (~mask), reduction='none')
+    mse_noise = mse_noise.mean()
 
-        # Combined loss
-        total_loss = alpha * mse_signal + beta * mse_noise 
-    else:
-        total_loss = F.mse_loss(denoised, target, reduction='none')
-        total_loss = total_loss.mean()
-        mse_signal = 1
-        mse_noise = 1
+    # Combined loss
+    total_loss = alpha * mse_signal + beta * mse_noise 
     return total_loss, mse_signal, mse_noise
 
 
@@ -73,7 +67,7 @@ threshold = 50
 max_train_levels = [20]
 max_val_levels = [5, 9, 12, 15, 18, 20, 35]
 
-label = 'r2UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
+label = 'dynnoise_fast_UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 
@@ -175,7 +169,7 @@ val_loader = make_data_loader([signal_dataset, noise_dataset], batch_size=batch_
 latent_channels = 16
 dropout_prob = 0.1 # 0.1 
 # 16, 0.3 version 1
-model = R2_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
+model = R2Att_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 
 # Initialize the optimizer
@@ -264,7 +258,7 @@ for epoch in tqdm(range(num_epochs)):
         
         # Forward pass
         denoised = model(inputs)
-        total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta, separate=False)
+        total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta)
         
         # Backward pass and optimization step
         total_loss.backward()
@@ -272,8 +266,8 @@ for epoch in tqdm(range(num_epochs)):
 
         # Accumulate training loss
         running_train_loss += total_loss.item()
-        running_train_mse_signal += mse_signal
-        running_train_mse_noise += mse_noise
+        running_train_mse_signal += mse_signal.item()
+        running_train_mse_noise += mse_noise.item()
         
         # Count signals and those passing the threshold
         detection_stats = compute_detection_statistic(denoised.detach())
@@ -302,12 +296,12 @@ for epoch in tqdm(range(num_epochs)):
             inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
 
             denoised = model(inputs)
-            total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta, separate=False)  # Use training threshold for loss
+            total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta)  # Use training threshold for loss
 
             #running_val_loss += val_loss.item()
             running_val_loss += total_loss.item()
-            running_val_mse_signal += mse_signal
-            running_val_mse_noise += mse_noise
+            running_val_mse_signal += mse_signal.item()
+            running_val_mse_noise += mse_noise.item()
             
             detection_stats = compute_detection_statistic(denoised.detach())
             val_det.append(detection_stats)

@@ -1,7 +1,7 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet import R2_UNet
+from model.unet_leaky_norm_tanho import UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
@@ -23,24 +23,18 @@ args = parser.parse_args()
 
 
 # Combined loss function with threshold-based labels
-def combined_loss(denoised, target, mask, alpha=1, beta=1, separate=True):
+def combined_loss(denoised, target, mask, alpha=1, beta=1):
     # MSE for signal
-    if separate:
-        mse_signal = F.mse_loss(denoised * mask, target * mask, reduction='none')
-        mse_signal = mse_signal.mean()
+    mse_signal = F.mse_loss(denoised * mask, target * mask, reduction='none')
+    mse_signal = mse_signal.mean()
     
-        # MSE for noise
-        background_zeros = torch.zeros_like(denoised).to(denoised.device)
-        mse_noise = F.mse_loss(denoised * (~mask), background_zeros * (~mask), reduction='none')
-        mse_noise = mse_noise.mean()
+    # MSE for noise
+    background_zeros = torch.zeros_like(denoised).to(denoised.device)
+    mse_noise = F.mse_loss(denoised * (~mask), background_zeros * (~mask), reduction='none')
+    mse_noise = mse_noise.mean()
 
-        # Combined loss
-        total_loss = alpha * mse_signal + beta * mse_noise 
-    else:
-        total_loss = F.mse_loss(denoised, target, reduction='none')
-        total_loss = total_loss.mean()
-        mse_signal = 1
-        mse_noise = 1
+    # Combined loss
+    total_loss = alpha * mse_signal + beta * mse_noise 
     return total_loss, mse_signal, mse_noise
 
 
@@ -70,10 +64,10 @@ n_step = args.n_step
 threshold = 50
 
 # Initial noise levels and total possible noise levels 
-max_train_levels = [20]
+max_train_levels = [25]
 max_val_levels = [5, 9, 12, 15, 18, 20, 35]
 
-label = 'r2UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
+label = 'fast_UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 
@@ -97,85 +91,62 @@ train_pdet = {noise_level: [] for noise_level in max_train_levels}
 val_pdet = {noise_level: [] for noise_level in max_val_levels}
 batch_size = 8
 
-# filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{}x{}_n1000_seed300.npz'.format(size[0], size[1])
-# noise = np.load(filename, allow_pickle=True)['dataset']
-# noise = normalize(noise)
-# noise_dataset = load_noise_dataset(noise)
+filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_seed0.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
+targets = np.load(filename, allow_pickle=True)['clean_image']
+masks = np.load(filename, allow_pickle=True)['signal_mask']
 
-noise = np.empty((1000,) + size + (4,))
+
+data = []
+mask_data = []
+target_data = []
+label_data = []
+for Sn in max_val_levels:
+    noise = np.empty((targets.shape[0],) + size + (4,))
+    for i in range(noise.shape[0]):
+        noise[i] = simNoise(sqrtSn=Sn, Tsft=Tsft, size=size, ndet=2, norm=False)
+
+    data.append(normalize(noise + targets))
+    mask_data.append(masks)
+    target_data.append(normalize(targets))
+    labels = [Sn] * noise.shape[0]  # Extend labels
+    label_data.append(labels)
+    
+data = np.concatenate(data)
+mask_data = np.concatenate(mask_data)
+target_data = np.concatenate(target_data)
+label_data = np.concatenate(label_data)
+data = load_signal_datasetv2(data, target_data, mask_data, label_data)
+    
+    
+noise = np.empty((200,) + size + (4,))
 for i in range(noise.shape[0]):
     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
 noise = normalize(noise)
-noise_dataset = load_noise_dataset(noise)
+noise_data = load_noise_dataset(noise)
 
-filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_norm.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
-print("Using {}".format(filename))
-data = np.load(filename, allow_pickle=True)
-signal_dataset = load_signal_dataset(data, max_val_levels)    
+val_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
-val_loader = make_data_loader([signal_dataset, noise_dataset], batch_size=batch_size)
-
-# Set random seed for reproducibility
-# filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{}x{}_n1000_seed299.npz'.format(size[0], size[1])
-# noise = np.load(filename, allow_pickle=True)['dataset'][:400]
-
-# filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_seed0.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
-# targets = np.load(filename, allow_pickle=True)['clean_image']
-# masks = np.load(filename, allow_pickle=True)['signal_mask']
-# targets = normalize(targets)
-
-
-# data = []
-# mask_data = []
-# target_data = []
-# label_data = []
-# for Sn in max_val_levels:
-#     noise = np.empty((targets.shape[0],) + size + (4,))
-#     for i in range(noise.shape[0]):
-#         noise[i] = simNoise(sqrtSn=Sn, Tsft=Tsft, size=size, ndet=2, norm=False)
-
-#     data.append(normalize(noise + targets))
-#     mask_data.append(masks)
-#     target_data.append(targets)
-#     labels = [Sn] * noise.shape[0]  # Extend labels
-#     label_data.append(labels)
+# load clean signal data 
+target_datasets = []
+mask_datasets = []
+# Load n datasets based on different seeds
+for i in range(n_data):  # Iterate over n datasets
+    filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/{0}Hz/{0}Hz_H1L1_D0-{4}_{2}x{3}_{5}s_4c_traindata_n1000_seed{1}.npz'.format(f0, i, size[0], size[1], 20, Tsft)
+    print("Using {}".format(filename))
+    targets = np.load(filename, allow_pickle=True)['clean_image']
+    masks = np.load(filename, allow_pickle=True)['signal_mask']
+    target_datasets.append(targets)
+    mask_datasets.append(masks)
     
-# data = np.concatenate(data)
-# mask_data = np.concatenate(mask_data)
-# target_data = np.concatenate(target_data)
-# label_data = np.concatenate(label_data)
-# data = load_signal_datasetv2(data, target_data, mask_data, label_data)
-    
-    
-# noise = np.empty((1000,) + size + (4,))
-# for i in range(noise.shape[0]):
-#     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
-# noise = normalize(noise)
-# noise_dataset = load_noise_dataset(noise)
-
-# val_loader = make_data_loader([data, noise_dataset], batch_size=batch_size)
-
-# # load clean signal data 
-# target_datasets = []
-# mask_datasets = []
-# # Load n datasets based on different seeds
-# for i in range(n_data):  # Iterate over n datasets
-#     filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/{0}Hz/{0}Hz_H1L1_D0-{4}_{2}x{3}_{5}s_4c_traindata_n1000_seed{1}.npz'.format(f0, i, size[0], size[1], 20, Tsft)
-#     print("Using {}".format(filename))
-#     targets = np.load(filename, allow_pickle=True)['clean_image']
-#     masks = np.load(filename, allow_pickle=True)['signal_mask']
-#     target_datasets.append(targets)
-#     mask_datasets.append(masks)
-    
-# target_datasets  = np.concatenate(target_datasets)
-# mask_datasets = np.concatenate(mask_datasets)
+target_datasets  = np.concatenate(target_datasets)
+mask_datasets = np.concatenate(mask_datasets)
 
 
 # Initialize the model
-latent_channels = 16
-dropout_prob = 0.1 # 0.1 
+size_filter_in = 16
+dropout_prob = 0.0 # 0.1 
 # 16, 0.3 version 1
-model = R2_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
+model = UNet(input_channels=4, output_channels=4, size_filter_in=size_filter_in, dropout_prob=dropout_prob).to(device)
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 
 # Initialize the optimizer
@@ -198,56 +169,30 @@ val_losses = []
 val_mse_signal = []
 val_mse_noise = []
 
-num_epochs = 1000
+num_epochs = 2000
 print(model)
 
 for epoch in tqdm(range(num_epochs)):   
     if epoch % n_step == 0:
         # generate gaussian noise
-#         noise = np.empty((target_datasets.shape[0],) + size + (4,))
-#         for i in range(target_datasets.shape[0]):
-#             noise[i] = simNoise(sqrtSn=max_train_levels[0], Tsft=Tsft, size=size, ndet=2, norm=False)
+        noise = np.empty((target_datasets.shape[0],) + size + (4,))
+        for i in range(target_datasets.shape[0]):
+            noise[i] = simNoise(sqrtSn=max_train_levels[0], Tsft=Tsft, size=size, ndet=2, norm=False)
         
-#         # add noise into clean signal 
-#         data = normalize(target_datasets + noise)
-#         label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
-#         signal_dataset = load_signal_datasetv2(data, target_datasets, mask_datasets, label_data)
+        # add noise into clean signal 
+        data = normalize(target_datasets + noise)
+        label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
+        data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
         
-        # load pure noise training data
-        seed = (epoch // n_step) % 300  # Generate unique seed for each dataset
-        dataset = []
-        
-        #filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{0}x{1}_n1000_seed{2}.npz'.format(size[0], size[1], seed)
-        #print('Using pure noise {} ...'.format(filename))
-        #noise = np.load(filename, allow_pickle=True)['dataset']
-        #noise = normalize(noise)
-        #noise_data = load_noise_dataset(noise)
-        
-        noise = np.empty((3000,) + size + (4,))
-        for i in range(noise.shape[0]):
-            noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
-        noise = normalize(noise)
-        noise_dataset = load_noise_dataset(noise)
-        dataset.append(noise_dataset)
-        
-        # for i in range(n_data):
-        #     seed = ((epoch // n_step) * n_data + i) % 300
-        #     filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/pure_noise/H1L1_purenoise_{}x{}_n1000_seed{}.npz'.format(size[0], size[1], seed)
-        #     print("Using {}".format(filename))
-        #     noise = np.load(filename, allow_pickle=True)['dataset']
-        #     noise = normalize(noise)
-        #     noise_dataset = load_noise_dataset(noise)
-        #     dataset.append(noise_dataset)
+        # # load pure noise training data        
+        # noise = np.empty((target_datasets.shape[0],) + size + (4,))
+        # for i in range(target_datasets.shape[0]):
+        #     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
+        # noise = normalize(noise)
+        # noise_data = load_noise_dataset(noise)
 
-        for i in range(n_data):
-            seed = ((epoch // n_step) * n_data + i) % 300
-            filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/{0}Hz/{0}Hz_H1L1_D0-{1}_{2}x{3}_{4}s_4c_traindata_n1000_seed{5}_norm.npz'.format(f0, max_train_levels[0], size[0], size[1], Tsft, seed)
-            print("Using {}".format(filename))
-            data = np.load(filename, allow_pickle=True)
-            signal_dataset = load_signal_dataset(data, max_val_levels)  
-            dataset.append(signal_dataset)
-
-        train_loader = make_data_loader(dataset, batch_size=batch_size)
+        train_loader = make_data_loader([data], batch_size=batch_size)
+        #train_loader = make_data_loader([data, noise_dat], batch_size=batch_size)
 
     # Training phase
     running_train_loss = 0.0
@@ -264,7 +209,7 @@ for epoch in tqdm(range(num_epochs)):
         
         # Forward pass
         denoised = model(inputs)
-        total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta, separate=False)
+        total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta)
         
         # Backward pass and optimization step
         total_loss.backward()
@@ -272,8 +217,8 @@ for epoch in tqdm(range(num_epochs)):
 
         # Accumulate training loss
         running_train_loss += total_loss.item()
-        running_train_mse_signal += mse_signal
-        running_train_mse_noise += mse_noise
+        running_train_mse_signal += mse_signal.item()
+        running_train_mse_noise += mse_noise.item()
         
         # Count signals and those passing the threshold
         detection_stats = compute_detection_statistic(denoised.detach())
@@ -302,12 +247,12 @@ for epoch in tqdm(range(num_epochs)):
             inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
 
             denoised = model(inputs)
-            total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta, separate=False)  # Use training threshold for loss
+            total_loss, mse_signal, mse_noise = combined_loss(denoised, targets, mask, alpha, beta)  # Use training threshold for loss
 
             #running_val_loss += val_loss.item()
             running_val_loss += total_loss.item()
-            running_val_mse_signal += mse_signal
-            running_val_mse_noise += mse_noise
+            running_val_mse_signal += mse_signal.item()
+            running_val_mse_noise += mse_noise.item()
             
             detection_stats = compute_detection_statistic(denoised.detach())
             val_det.append(detection_stats)

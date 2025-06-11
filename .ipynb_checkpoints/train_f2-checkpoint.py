@@ -64,7 +64,7 @@ n_step = args.n_step
 threshold = 50
 
 # Initial noise levels and total possible noise levels 
-max_train_levels = [5]
+max_train_levels = [25]
 max_val_levels = [5, 9, 12, 15, 18, 20, 35]
 
 label = 'fast_UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
@@ -104,7 +104,6 @@ batch_size = 8
 filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_seed0.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
 targets = np.load(filename, allow_pickle=True)['clean_image']
 masks = np.load(filename, allow_pickle=True)['signal_mask']
-targets = normalize(targets)
 
 
 data = []
@@ -118,7 +117,7 @@ for Sn in max_val_levels:
 
     data.append(normalize(noise + targets))
     mask_data.append(masks)
-    target_data.append(targets)
+    target_data.append(normalize(targets))
     labels = [Sn] * noise.shape[0]  # Extend labels
     label_data.append(labels)
     
@@ -129,7 +128,7 @@ label_data = np.concatenate(label_data)
 data = load_signal_datasetv2(data, target_data, mask_data, label_data)
     
     
-noise = np.empty((1000,) + size + (4,))
+noise = np.empty((200,) + size + (4,))
 for i in range(noise.shape[0]):
     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
 noise = normalize(noise)
@@ -180,7 +179,7 @@ val_losses = []
 val_mse_signal = []
 val_mse_noise = []
 
-num_epochs = 1000
+num_epochs = 2000
 print(model)
 
 for epoch in tqdm(range(num_epochs)):   
@@ -193,7 +192,7 @@ for epoch in tqdm(range(num_epochs)):
         # add noise into clean signal 
         data = normalize(target_datasets + noise)
         label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
-        data = load_signal_datasetv2(data, target_datasets, mask_datasets, label_data)
+        data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
         
         # load pure noise training data
         #seed = (epoch // n_step) % 300  # Generate unique seed for each dataset
@@ -203,8 +202,8 @@ for epoch in tqdm(range(num_epochs)):
         #noise = normalize(noise)
         #noise_data = load_noise_dataset(noise)
         
-        noise = np.empty((1000,) + size + (4,))
-        for i in range(noise.shape[0]):
+        noise = np.empty((target_datasets.shape[0],) + size + (4,))
+        for i in range(target_datasets.shape[0]):
             noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
         noise = normalize(noise)
         noise_data = load_noise_dataset(noise)

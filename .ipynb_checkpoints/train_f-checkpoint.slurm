@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=unet_500Hz_14400
-#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/dynnosie_f_500Hz_th50_leakynormtanho_unet_10d_s3kstep3n1k_D20_Tsft14400_a1b1_old.out
-#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/dynnosie_f_500Hz_th50_leakynormtanho_unet_10d_s3kstep3n1k_D20_Tsft14400_a1b1_old.err
-#SBATCH --time=1-20:00:00
+#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/f2long_500Hz_th50_leakynormtanho_unet_10d_s8_D25_Tsft14400_a1b1.out
+#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/f2long_500Hz_th50_leakynormtanho_unet_10d_s8_D25_Tsft14400_a1b1.err
+#SBATCH --time=10-20:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
@@ -15,4 +15,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python -u train_f3.py --f0 500 --n_step 3 --n_data 3 --alpha 1 --beta 1 --freq_size 512 --Tsft 14400
+python -u train_f2.py --f0 500 --n_step 1 --n_data 8 --alpha 1 --beta 1 --freq_size 512 --Tsft 14400

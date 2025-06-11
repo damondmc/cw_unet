@@ -100,7 +100,7 @@ def _genSampleParam(hnoise, f1min, f1max, nSample):
             ])
     return params
 
-def simNoise(sqrtSn=1, Tsft=7200, size=(256,128), ndet=2, norm=True):
+def simNoise(sqrtSn=1, Tsft=7200, size=(256,128), ndet=2, norm=True, seed=None):
     """
     Generates Gaussian noise in the frequency domain with given parameters.
 
@@ -112,6 +112,10 @@ def simNoise(sqrtSn=1, Tsft=7200, size=(256,128), ndet=2, norm=True):
     Returns:
         np.ndarray: Generated noise data with shape (num_segments, num_bins, 2*ndet).
     """
+    
+    if seed is not None:
+        np.random.seed(seed)
+    
     #num_bins, num_segments = size
     # sigma in time domain = 1 and therefor in complex domain (real + imag), the variance is half of the original one 
     sigma = 0.5 * sqrtSn * np.sqrt(Tsft)  # Variance for real and imaginary parts 
