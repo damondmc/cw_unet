@@ -65,8 +65,8 @@ n_step = args.n_step
 threshold = 50
 
 # Initial noise levels and total possible noise levels 
-max_train_levels = [25]
-max_val_levels = [5, 9, 12, 15, 18, 20, 35]
+max_train_levels = [22]
+max_val_levels = [5, 10, 13, 16, 19, 21, 36]
 
 label = 'fast_UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
@@ -90,12 +90,12 @@ print(f"Beta (noise): {beta}")
 # Initialize dictionaries to store `pdet` by noise level
 train_pdet = {noise_level: [] for noise_level in max_train_levels}
 val_pdet = {noise_level: [] for noise_level in max_val_levels}
+val_pdet2 = {noise_level: [] for noise_level in [9, 12, 15, 18, 20, 22, 35]}
 batch_size = 8
 
 filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_seed0.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
 targets = np.load(filename, allow_pickle=True)['clean_image']
 masks = np.load(filename, allow_pickle=True)['signal_mask']
-
 
 data = []
 mask_data = []
@@ -112,6 +112,8 @@ for Sn in max_val_levels:
     labels = [Sn] * noise.shape[0]  # Extend labels
     label_data.append(labels)
     
+    
+    
 data = np.concatenate(data)
 mask_data = np.concatenate(mask_data)
 target_data = np.concatenate(target_data)
@@ -119,13 +121,22 @@ label_data = np.concatenate(label_data)
 data = load_signal_datasetv2(data, target_data, mask_data, label_data)
     
     
-noise = np.empty((200,) + size + (4,))
+noise = np.empty((500,) + size + (4,))
 for i in range(noise.shape[0]):
     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
 noise = normalize(noise)
 noise_data = load_noise_dataset(noise)
 
 val_loader = make_data_loader([data, noise_data], batch_size=batch_size)
+
+
+filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_norm.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
+print("Using {}".format(filename))
+data = np.load(filename, allow_pickle=True)
+signal_dataset = load_signal_dataset(data, [9, 12, 15, 18, 20, 22, 35])    
+
+val_loader2 = make_data_loader([signal_dataset, noise_data], batch_size=batch_size)
+
 
 # load clean signal data 
 target_datasets = []
@@ -177,7 +188,7 @@ print(model)
 for epoch in tqdm(range(num_epochs)):   
     if epoch % n_step == 0:
         # generate gaussian noise
-        with mp.Pool(processes=num_cpus) as pool:
+        with Pool(processes=num_cpus) as pool:
             _noise = pool.starmap(simNoise, 
                                   [(max_train_levels[0], Tsft, size, 2, False, epoch*ns + i) 
                                    for i in range(ns)])
@@ -196,14 +207,14 @@ for epoch in tqdm(range(num_epochs)):
         data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
         
         # # load pure noise training data        
-        # noise = np.empty((ns,) + size + (4,))
-        # for i in range(ns):
-        #     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
-        # noise = normalize(noise)
-        # noise_data = load_noise_dataset(noise)
+        noise = np.empty((500,) + size + (4,))
+        for i in range(500):
+            noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
+        noise = normalize(noise)
+        noise_data = load_noise_dataset(noise)
 
-        train_loader = make_data_loader([data], batch_size=batch_size)
-        #train_loader = make_data_loader([data, noise_dat], batch_size=batch_size)
+        #train_loader = make_data_loader([data], batch_size=batch_size)
+        train_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
     # Training phase
     running_train_loss = 0.0
@@ -276,6 +287,20 @@ for epoch in tqdm(range(num_epochs)):
     val_mse_signal.append(val_mse_signal_epoch)
     val_mse_noise.append(val_mse_noise_epoch)
     
+    model.eval()
+    with torch.no_grad():
+        val_det2 = []
+        val_label2 = []
+        
+        for inputs, targets, mask, labels in val_loader2: 
+            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+
+            denoised = model(inputs)
+            detection_stats = compute_detection_statistic(denoised.detach())
+            val_det2.append(detection_stats)
+            val_label2.append(labels)
+            
+    
     # Compute Pdet as the fraction of signals passing the threshold
     train_det = np.concatenate(train_det, axis=0)
     train_label = np.concatenate(train_label, axis=0)    
@@ -313,6 +338,27 @@ for epoch in tqdm(range(num_epochs)):
         else:
             pdet = np.nan
             val_pdet[noise_level].append(pdet) 
+            
+            
+    # Compute validation pdet by noise level
+    val_det2 = np.concatenate(val_det2, axis=0)
+    val_label2 = np.concatenate(val_label2, axis=0)    
+    
+    noise_det = val_det[val_label2==np.float('inf')]
+    pfa = compute_threshold_from_pfa(noise_det)
+    
+    # Compute valing pdet by noise level
+    print('Validation pyFstat:')
+    print('pfa th = ', pfa)
+    for noise_level in val_pdet2.keys():
+        signal_det = val_det2[val_label2 == float(noise_level)]
+        if signal_det.size != 0:
+            pdet = (signal_det > pfa).sum() / signal_det.size 
+            val_pdet2[noise_level].append(pdet)
+            print("D={}, pdet={}%".format(noise_level, pdet*100))
+        else:
+            pdet = np.nan
+            val_pdet2[noise_level].append(pdet) 
             
     #scheduler.step(val_loss)
     scheduler.step(val_pdet[max_val_levels[-1]][-1])

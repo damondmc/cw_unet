@@ -39,7 +39,7 @@ size = (freq_size, obsTime // Tsft)
     
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/' 
 
-nSample = 2000
+nSample = 33000
 neach = 1000
 
 f1min = -1e-10 
@@ -59,7 +59,7 @@ print(f"Spectrogram size: {size}")
 #              60, 80, 100, 120]
 
 #hnoise = [0, 9, 12, 15, 18, 20, 22, 35]
-hnoise = [0, 15, 20, 35]
+hnoise = [0, 20]
 
 
 label = '{}train4cD10N'.format(f0)
