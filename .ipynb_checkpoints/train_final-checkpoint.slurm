@@ -2,7 +2,7 @@
 #SBATCH --job-name=tunet_500Hz_D22
 #SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/testfinal_500Hz_th50_leakynormtanho_unet_10d_s5step3_D22_Tsft14400_a1b1.out
 #SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/testfinal_500Hz_th50_leakynormtanho_unet_10d_s5step3_D22_Tsft14400_a1b1.err
-#SBATCH --time=10-20:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8

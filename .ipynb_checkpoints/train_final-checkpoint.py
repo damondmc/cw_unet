@@ -182,7 +182,7 @@ val_losses = []
 val_mse_signal = []
 val_mse_noise = []
 
-num_epochs = 2000
+num_epochs = 800
 print(model)
 
 for epoch in tqdm(range(num_epochs)):   
@@ -197,10 +197,6 @@ for epoch in tqdm(range(num_epochs)):
         for i, _n in enumerate(_noise):
             noise[i] = _n
 
-#         noise = np.empty((ns,) + size + (4,))
-#         for i in range(ns):
-#             noise[i] = simNoise(sqrtSn=max_train_levels[0], Tsft=Tsft, size=size, ndet=2, norm=False)
-        
         # add noise into clean signal 
         data = normalize(target_datasets + noise)
         label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
@@ -344,7 +340,7 @@ for epoch in tqdm(range(num_epochs)):
     val_det2 = np.concatenate(val_det2, axis=0)
     val_label2 = np.concatenate(val_label2, axis=0)    
     
-    noise_det = val_det[val_label2==np.float('inf')]
+    noise_det = val_det2[val_label2==np.float('inf')]
     pfa = compute_threshold_from_pfa(noise_det)
     
     # Compute valing pdet by noise level
