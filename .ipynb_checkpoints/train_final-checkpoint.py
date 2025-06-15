@@ -19,9 +19,33 @@ parser.add_argument('--n_step', type=int, default=3, help='Steps for each datase
 parser.add_argument('--n_data', type=int, default=3, help='Number of dataset to be used for each loop.')
 parser.add_argument('--alpha', type=float, default=1, help='Weight for signal MSE in loss function.')
 parser.add_argument('--beta', type=float, default=1, help='Weight for noise MSE in loss function.')
-
 args = parser.parse_args()
 
+def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus):
+    """
+    Simulate noise in parallel using a process pool.
+    
+    Args:
+        max_train_levels: Maximum training levels (list or tuple)
+        Tsft: Time shift parameter
+        size: Shape of the noise array
+        ns: Number of samples
+        epoch: Current epoch number
+        num_cpus: Number of CPU processes to use
+    
+    Returns:
+        numpy.ndarray: Array of simulated noise with shape (ns, *size, 4)
+    """
+    with Pool(processes=num_cpus) as pool:
+        _noise = pool.starmap(simNoise,
+                            [(Sn, Tsft, size, 2, False, epoch*ns + i)
+                             for i in range(ns)])
+    
+    noise = np.empty((ns,) + size + (4,))
+    for i, _n in enumerate(_noise):
+        noise[i] = _n
+        
+    return noise
 
 # Combined loss function with threshold-based labels
 def combined_loss(denoised, target, mask, alpha=1, beta=1):
@@ -42,9 +66,11 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
+num_epochs = 1000
+
 # Set random seed for reproducibility
-np.random.seed(100000)
-torch.manual_seed(100000)
+np.random.seed(100000*num_epochs)
+torch.manual_seed(0)
 
 # Use arguments from argparse
 f0 = args.f0
@@ -63,14 +89,12 @@ n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 n_step = args.n_step
 
 threshold = 50
-
 # Initial noise levels and total possible noise levels 
-max_train_levels = [22]
-max_val_levels = [5, 10, 13, 16, 19, 21, 36]
+max_train_levels = [20]
+max_val_levels = [12, 15, 18, 20, 22, 35]
 
 label = 'fast_UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
-
 
 print(f"Nominal frequency: {f0}")
 print(f"Detector: {det}")
@@ -85,12 +109,10 @@ print(f"Save file label: {version}")
 print(f"Alpha (signal): {alpha}")
 print(f"Beta (noise): {beta}")
 
-
-
 # Initialize dictionaries to store `pdet` by noise level
 train_pdet = {noise_level: [] for noise_level in max_train_levels}
 val_pdet = {noise_level: [] for noise_level in max_val_levels}
-val_pdet2 = {noise_level: [] for noise_level in [9, 12, 15, 18, 20, 22, 35]}
+val_pdet2 = {noise_level: [] for noise_level in max_val_levels}
 batch_size = 8
 
 filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_seed0.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
@@ -111,9 +133,7 @@ for Sn in max_val_levels:
     target_data.append(normalize(targets))
     labels = [Sn] * noise.shape[0]  # Extend labels
     label_data.append(labels)
-    
-    
-    
+        
 data = np.concatenate(data)
 mask_data = np.concatenate(mask_data)
 target_data = np.concatenate(target_data)
@@ -133,7 +153,7 @@ val_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_norm.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
 print("Using {}".format(filename))
 data = np.load(filename, allow_pickle=True)
-signal_dataset = load_signal_dataset(data, [9, 12, 15, 18, 20, 22, 35])    
+signal_dataset = load_signal_dataset(data, max_val_levels)    
 
 val_loader2 = make_data_loader([signal_dataset, noise_data], batch_size=batch_size)
 
@@ -182,30 +202,31 @@ val_losses = []
 val_mse_signal = []
 val_mse_noise = []
 
-num_epochs = 800
 print(model)
 
 for epoch in tqdm(range(num_epochs)):   
     if epoch % n_step == 0:
         # generate gaussian noise
-        with Pool(processes=num_cpus) as pool:
-            _noise = pool.starmap(simNoise, 
-                                  [(max_train_levels[0], Tsft, size, 2, False, epoch*ns + i) 
-                                   for i in range(ns)])
-            
-        noise = np.empty((ns,) + size + (4,))
-        for i, _n in enumerate(_noise):
-            noise[i] = _n
+#         with Pool(processes=num_cpus) as pool:
+#             _noise = pool.starmap(simNoise, 
+#                                   [(max_train_levels[0], Tsft, size, 2, False, epoch*ns + i) 
+#                                    for i in range(ns)])
+#         noise = np.empty((ns,) + size + (4,))
+#         for i, _n in enumerate(_noise):
+#             noise[i] = _n
+        # generate noise 
+        noise = simulate_noise_batch(max_train_levels[0], Tsft, size, ns, epoch, num_cpus)
 
         # add noise into clean signal 
         data = normalize(target_datasets + noise)
         label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
         data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
         
-        # # load pure noise training data        
-        noise = np.empty((500,) + size + (4,))
-        for i in range(500):
-            noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
+        # generate pure noise training data        
+        noise = simulate_noise_batch(1, Tsft, size, 500, num_epochs*ns+epoch, num_cpus)
+#         noise = np.empty((500,) + size + (4,))
+#         for i in range(500):
+#             noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
         noise = normalize(noise)
         noise_data = load_noise_dataset(noise)
 

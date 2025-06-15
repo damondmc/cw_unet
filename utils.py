@@ -11,10 +11,8 @@ from PIL import Image
 from scipy.stats import entropy
 from multiprocessing import Pool, cpu_count
 
-
 # Detect if CUDA is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#device = "cpu"
 
 def compute_detection_statistic(images, ref_distribution=None):
     """
@@ -307,10 +305,6 @@ def load_noise_dataset(images):
     masks_tensor = torch.tensor(masks, dtype=torch.bool).permute(0, 3, 1, 2)
     labels_tensor = torch.tensor(labels, dtype=torch.float64)
 
-    #print(images_tensor.shape)
-    #print(targets_tensor.shape)
-    #print(masks_tensor.shape)
-    #print(labels_tensor.shape)
     # Create the full dataset
     full_dataset = TensorDataset(images_tensor, targets_tensor, masks_tensor, labels_tensor)
     

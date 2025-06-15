@@ -23,10 +23,9 @@ np.random.seed(7)
 
 if args.validation:
     np.random.seed(23) 
+    print('Validation set.')
 
 #np.random.seed(2323) 
-# # for purenoise
-# np.random.seed(8)
 
 # Use arguments from argparse
 f0 = args.f0
@@ -40,6 +39,9 @@ size = (freq_size, obsTime // Tsft)
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/' 
 
 nSample = 33000
+if args.validation:
+    nSample = 500 
+    
 neach = 1000
 
 f1min = -1e-10 
@@ -71,7 +73,10 @@ params = genSampleParam(hnoise, f1min, f1max, nSample)
 
 batch_size = 8
 n = int(nSample//neach)
-# 320
+
+if n == 0:
+    n+=1
+
 for seed in range(n):
     p = params[len(hnoise)*seed*neach:len(hnoise)*(seed+1)*neach]
     _d1, _d2 = generate_mock_cw_signals(label=label, f0=f0, params=p, h0=1, num_cpus=num_cpus, obsTime=obsTime, Tsft=Tsft, homedir=homedir+'tmp/')
