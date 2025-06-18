@@ -38,8 +38,11 @@ class UNet(nn.Module):
             nn.ConvTranspose2d(size_filter_in * 2, size_filter_in, kernel_size=2, stride=2)
         ])
         # Output layer
-        self.output_layer = nn.Conv2d(size_filter_in, output_channels, kernel_size=1)
-        
+        #self.output_layer = nn.Conv2d(size_filter_in, output_channels, kernel_size=1)
+        self.output_layer = nn.Sequential(
+            nn.Conv2d(size_filter_in, output_channels, kernel_size=1),
+            nn.Tanh()
+        )
 
     def conv_block(self, in_channels, out_channels, kernel_init):
         return nn.Sequential(
@@ -77,6 +80,6 @@ class UNet(nn.Module):
             x = layer(x)
         # Output
         x = self.output_layer(x)
-        return torch.tanh(x)
+        return x
         #return x
     

@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=gen_four
-#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_data_14400.out
-#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_data_14400.err
-#SBATCH --time=1-00:00:00
+#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_data_7200.out
+#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_data_7200.err
+#SBATCH --time=06:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=20
@@ -14,4 +14,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python makeTrainDatav2.py --num_cpus 20 --f0min 500 --f0max 500 --Tsft 14400 --freq_size 512 --validation
+python makeTrainData.py --num_cpus 20 --f0min 500 --f0max 500 --Tsft 7200 --freq_size 512 --obsTime 1843200

@@ -1,7 +1,7 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet_leaky_norm_tanho import UNet
+from model.unet_leaky import Attention_UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
@@ -66,7 +66,7 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 2000
+num_epochs = 1000
 noise_train = 500
 print("Number of pure nosie = {}".format(noise_train))
 
@@ -85,17 +85,16 @@ alpha = args.alpha
 beta = args.beta
 
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f'
-tmpdir = homedir + '/tmp/'
 size = (freq_size, obsTime // Tsft)
 n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 n_step = args.n_step
 
 threshold = 50
 # Initial noise levels and total possible noise levels 
-max_train_levels = [30]
+max_train_levels = [20]
 max_val_levels = [15, 18, 19, 20, 30, 35]
 
-label = 'UNET_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, threshold)
+label = 'attleakyUNET_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Nominal frequency: {f0}")
@@ -168,10 +167,12 @@ mask_datasets = np.concatenate(mask_datasets)
 ns = target_datasets.shape[0]
 
 # Initialize the model
-size_filter_in = 16
+
+# Initialize the model
+latent_channels = 16
 dropout_prob = 0.0 # 0.1 
 # 16, 0.3 version 1
-model = UNet(input_channels=4, output_channels=4, size_filter_in=size_filter_in, dropout_prob=dropout_prob).to(device)
+model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 
 # Initialize the optimizer

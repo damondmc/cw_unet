@@ -21,7 +21,7 @@ parser.add_argument('--alpha', type=float, default=1, help='Weight for signal MS
 parser.add_argument('--beta', type=float, default=1, help='Weight for noise MSE in loss function.')
 args = parser.parse_args()
 
-def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus):
+def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus, base=0):
     """
     Simulate noise in parallel using a process pool.
     
@@ -38,7 +38,7 @@ def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus):
     """
     with Pool(processes=num_cpus) as pool:
         _noise = pool.starmap(simNoise,
-                            [(Sn, Tsft, size, 2, False, epoch*ns + i)
+                            [(Sn, Tsft, size, 2, False, base+epoch*ns + i)
                              for i in range(ns)])
     
     noise = np.empty((ns,) + size + (4,))
@@ -66,10 +66,12 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 1000
+num_epochs = 2000
+noise_train = 500
+print("Number of pure nosie = {}".format(noise_train))
 
 # Set random seed for reproducibility
-np.random.seed(100000*num_epochs)
+np.random.seed(0)
 torch.manual_seed(0)
 
 # Use arguments from argparse
@@ -82,18 +84,18 @@ num_cpus = args.num_cpus
 alpha = args.alpha
 beta = args.beta
 
-homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/'
-tmpdir = homedir + 'tmp/'
+homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f'
+tmpdir = homedir + '/tmp/'
 size = (freq_size, obsTime // Tsft)
 n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 n_step = args.n_step
 
 threshold = 50
 # Initial noise levels and total possible noise levels 
-max_train_levels = [20]
-max_val_levels = [12, 15, 18, 20, 22, 35]
+max_train_levels = [30]
+max_val_levels = [15, 18, 19, 20, 30, 35]
 
-label = 'fast_UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
+label = 'UNET_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Nominal frequency: {f0}")
@@ -114,9 +116,9 @@ train_pdet = {noise_level: [] for noise_level in max_train_levels}
 val_pdet = {noise_level: [] for noise_level in max_val_levels}
 batch_size = 8
 
-filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_seed0.npz'.format(f0, size[0], size[1], Tsft, 20, 1000)
-targets = np.load(filename, allow_pickle=True)['clean_image']
-masks = np.load(filename, allow_pickle=True)['signal_mask']
+filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
+targets = np.load(filename, allow_pickle=True)['clean_image'][:500]
+masks = np.load(filename, allow_pickle=True)['signal_mask'][:500]
 
 data = []
 mask_data = []
@@ -139,7 +141,6 @@ target_data = np.concatenate(target_data)
 label_data = np.concatenate(label_data)
 data = load_signal_datasetv2(data, target_data, mask_data, label_data)
     
-    
 noise = np.empty((500,) + size + (4,))
 for i in range(noise.shape[0]):
     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
@@ -154,7 +155,7 @@ target_datasets = []
 mask_datasets = []
 # Load n datasets based on different seeds
 for i in range(n_data):  # Iterate over n datasets
-    filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/{0}Hz/{0}Hz_H1L1_D0-{4}_{2}x{3}_{5}s_4c_traindata_n1000_seed{1}.npz'.format(f0, i, size[0], size[1], 20, Tsft)
+    filename = '{6}/data/{0}Hz/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n1000_seed{5}.npz'.format(f0, det, size[0], size[1], Tsft, i, homedir)
     print("Using {}".format(filename))
     targets = np.load(filename, allow_pickle=True)['clean_image']
     masks = np.load(filename, allow_pickle=True)['signal_mask']
@@ -198,15 +199,15 @@ print(model)
 for epoch in tqdm(range(num_epochs)):   
     if epoch % n_step == 0:
         # generate noise 
-        noise = simulate_noise_batch(max_train_levels[0], Tsft, size, ns, epoch, num_cpus)
+        noise = simulate_noise_batch(max_train_levels[0], Tsft, size, ns, epoch, num_cpus, 1)
 
         # add noise into clean signal 
         data = normalize(target_datasets + noise)
         label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
         data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
         
-        # generate pure noise training data        
-        noise = simulate_noise_batch(1, Tsft, size, 500, num_epochs*ns+epoch, num_cpus)
+        # generate pure noise training data       # original 500 noise 
+        noise = simulate_noise_batch(1, Tsft, size, noise_train, epoch, num_cpus, 1+num_epochs*ns)
         noise = normalize(noise)
         noise_data = load_noise_dataset(noise)
 
@@ -250,7 +251,6 @@ for epoch in tqdm(range(num_epochs)):
     train_losses.append(train_loss)
     train_mse_signal.append(train_mse_signal_epoch)
     train_mse_noise.append(train_mse_noise_epoch)
-
     
     # Validation phase
     running_val_loss = 0.0
@@ -354,8 +354,8 @@ val_mse_signal = np.array(val_mse_signal)
 val_mse_noise = np.array(val_mse_noise)
 
 # Save the top validation models and the best training model
-torch.save(best_val_model, homedir+"trained_model/{0}Hz/best_val_model_{1}.pth".format(f0, version))
-torch.save(best_pdet_model, homedir+"trained_model/{0}Hz/best_pdet_model_{1}.pth".format(f0, version))
+torch.save(best_val_model, homedir+"/trained_model/{0}Hz/best_val_model_{1}.pth".format(f0, version))
+torch.save(best_pdet_model, homedir+"/trained_model/{0}Hz/best_pdet_model_{1}.pth".format(f0, version))
 
 # Save all losses in a single file
 losses = {
@@ -370,6 +370,6 @@ losses = {
     "val_pdet": val_pdet,
     "top_val_pdet": best_pdet
 }
-np.save(homedir+'trained_model/{0}Hz/losses_{1}.npy'.format(f0, version), losses)
+np.save(homedir+'/trained_model/{0}Hz/losses_{1}.npy'.format(f0, version), losses)
 
 print("Done.")
