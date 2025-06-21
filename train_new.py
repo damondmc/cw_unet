@@ -17,8 +17,11 @@ parser.add_argument('--freq_size', type=int, default=256, help='Frequency band s
 parser.add_argument('--num_cpus', type=int, default=16, help='Number of CPUs to use (default: 20)')
 parser.add_argument('--n_step', type=int, default=3, help='Steps for each dataset to be trained.')
 parser.add_argument('--n_data', type=int, default=3, help='Number of dataset to be used for each loop.')
+parser.add_argument('--n_noise', type=int, default=1, help='Number of noise dataset to be used for each loop.')
 parser.add_argument('--alpha', type=float, default=1, help='Weight for signal MSE in loss function.')
 parser.add_argument('--beta', type=float, default=1, help='Weight for noise MSE in loss function.')
+parser.add_argument('--latent_channels', type=int, default=16, help='Number of latent_channels for our model.')
+
 args = parser.parse_args()
 
 def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus, base=0):
@@ -67,7 +70,7 @@ t0 = time.time()
 print("Start")
 
 num_epochs = 1000
-noise_train = 500
+noise_train = 1000 * args.n_noise
 print("Number of pure nosie = {}".format(noise_train))
 
 # Set random seed for reproducibility
@@ -83,6 +86,7 @@ freq_size = args.freq_size
 num_cpus = args.num_cpus
 alpha = args.alpha
 beta = args.beta
+latent_channels = args.latent_channels
 
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f'
 size = (freq_size, obsTime // Tsft)
@@ -94,7 +98,7 @@ threshold = 50
 max_train_levels = [20]
 max_val_levels = [15, 18, 19, 20, 30, 35]
 
-label = 'attleakyUNET_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, threshold)
+label = 'UNET_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Nominal frequency: {f0}")
@@ -113,7 +117,7 @@ print(f"Beta (noise): {beta}")
 # Initialize dictionaries to store `pdet` by noise level
 train_pdet = {noise_level: [] for noise_level in max_train_levels}
 val_pdet = {noise_level: [] for noise_level in max_val_levels}
-batch_size = 8
+batch_size = 32
 
 filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
 targets = np.load(filename, allow_pickle=True)['clean_image'][:500]
@@ -169,7 +173,7 @@ ns = target_datasets.shape[0]
 # Initialize the model
 
 # Initialize the model
-latent_channels = 16
+#latent_channels = 16
 dropout_prob = 0.0 # 0.1 
 # 16, 0.3 version 1
 model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)

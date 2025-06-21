@@ -17,6 +17,7 @@ parser.add_argument('--freq_size', type=int, default=256, help='Frequency band s
 parser.add_argument('--num_cpus', type=int, default=16, help='Number of CPUs to use (default: 20)')
 parser.add_argument('--n_step', type=int, default=3, help='Steps for each dataset to be trained.')
 parser.add_argument('--n_data', type=int, default=3, help='Number of dataset to be used for each loop.')
+parser.add_argument('--n_noise', type=int, default=1, help='Number of noise dataset to be used for each loop.')
 parser.add_argument('--alpha', type=float, default=1, help='Weight for signal MSE in loss function.')
 parser.add_argument('--beta', type=float, default=1, help='Weight for noise MSE in loss function.')
 args = parser.parse_args()
@@ -66,8 +67,8 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 2000
-noise_train = 500
+num_epochs = 1000
+noise_train = 1000 * args.n_noise
 print("Number of pure nosie = {}".format(noise_train))
 
 # Set random seed for reproducibility
@@ -92,10 +93,10 @@ n_step = args.n_step
 
 threshold = 50
 # Initial noise levels and total possible noise levels 
-max_train_levels = [30]
+max_train_levels = [20]
 max_val_levels = [15, 18, 19, 20, 30, 35]
 
-label = 'UNET_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, threshold)
+label = 'UNET_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, threshold)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Nominal frequency: {f0}")

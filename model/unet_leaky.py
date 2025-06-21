@@ -231,42 +231,41 @@ class Attention_block(nn.Module):
         return x * psi  # Apply attention weights to encoder features
     
 class UNet(nn.Module):
-    def __init__(self, input_channels=1, output_channels=1):
+    def __init__(self, input_channels=1, output_channels=1, latent_channels=64):
         super(UNet, self).__init__()
 
         # Initialize filters and kernel weights
-        size_filter_in = 16
         kernel_init = nn.init.kaiming_normal_
         # Encoder
         self.encoder = nn.ModuleList([
-            self.conv_block(input_channels, size_filter_in, kernel_init),
-            self.conv_block(size_filter_in, size_filter_in * 2, kernel_init),
-            self.conv_block(size_filter_in * 2, size_filter_in * 4, kernel_init),
-            self.conv_block(size_filter_in * 4, size_filter_in * 8, kernel_init)
+            self.conv_block(input_channels, latent_channels, kernel_init),
+            self.conv_block(latent_channels, latent_channels * 2, kernel_init),
+            self.conv_block(latent_channels * 2, latent_channels * 4, kernel_init),
+            self.conv_block(latent_channels * 4, latent_channels * 8, kernel_init)
         ])
         
         # Bottleneck
         self.bottleneck = nn.Sequential(
-            self.conv_block(size_filter_in * 8, size_filter_in * 16, kernel_init),
+            self.conv_block(latent_channels * 8, latent_channels * 16, kernel_init),
         #    nn.Dropout(0.5)
         )
         
         # Decoder
         self.decoder = nn.ModuleList([
-            self.conv_block(size_filter_in * 16, size_filter_in * 8, kernel_init),
-            self.conv_block(size_filter_in * 8, size_filter_in * 4, kernel_init),
-            self.conv_block(size_filter_in * 4, size_filter_in * 2, kernel_init),
-            self.conv_block(size_filter_in * 2, size_filter_in, kernel_init)
+            self.conv_block(latent_channels * 16, latent_channels * 8, kernel_init),
+            self.conv_block(latent_channels * 8, latent_channels * 4, kernel_init),
+            self.conv_block(latent_channels * 4, latent_channels * 2, kernel_init),
+            self.conv_block(latent_channels * 2, latent_channels, kernel_init)
         ])
 
         self.upsample_layer = nn.ModuleList([
-            nn.ConvTranspose2d(size_filter_in * 16, size_filter_in * 8, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(size_filter_in * 8, size_filter_in * 4, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(size_filter_in * 4, size_filter_in * 2, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(size_filter_in * 2, size_filter_in, kernel_size=2, stride=2)
+            nn.ConvTranspose2d(latent_channels * 16, latent_channels * 8, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(latent_channels * 8, latent_channels * 4, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(latent_channels * 4, latent_channels * 2, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(latent_channels * 2, latent_channels, kernel_size=2, stride=2)
         ])
         # Output layer
-        self.output_layer = nn.Conv2d(size_filter_in, output_channels, kernel_size=1)
+        self.output_layer = nn.Conv2d(latent_channels, output_channels, kernel_size=1)
 
     def conv_block(self, in_channels, out_channels, kernel_init):
         return nn.Sequential(
