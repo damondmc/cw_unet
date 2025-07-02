@@ -1,7 +1,7 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet_leaky_norm_tanho import UNet
+from model.unet_leaky import Attention_UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
@@ -20,6 +20,9 @@ parser.add_argument('--n_data', type=int, default=3, help='Number of dataset to 
 parser.add_argument('--n_noise', type=int, default=1, help='Number of noise dataset to be used for each loop.')
 parser.add_argument('--alpha', type=float, default=1, help='Weight for signal MSE in loss function.')
 parser.add_argument('--beta', type=float, default=1, help='Weight for noise MSE in loss function.')
+parser.add_argument('--latent_channels', type=int, default=16, help='Number of latent_channels for our model.')
+parser.add_argument('--batch_size', type=int, default=8, help='Batch size.')
+parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate.')
 args = parser.parse_args()
 
 def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus, base=0):
@@ -67,7 +70,7 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 1000
+num_epochs = 800
 noise_train = 1000 * args.n_noise
 print("Number of pure nosie = {}".format(noise_train))
 
@@ -84,9 +87,11 @@ freq_size = args.freq_size
 num_cpus = args.num_cpus
 alpha = args.alpha
 beta = args.beta
+latent_channels = args.latent_channels
+batch_size = args.batch_size
+lr = args.lr
 
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f'
-tmpdir = homedir + '/tmp/'
 size = (freq_size, obsTime // Tsft)
 n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 n_step = args.n_step
@@ -94,11 +99,13 @@ n_step = args.n_step
 threshold = 50
 # Initial noise levels and total possible noise levels 
 max_train_levels = [20]
-max_val_levels = [15, 18, 19, 20, 30, 35]
+max_val_levels = [18, 19, 19.5, 20, 35, 35.6]
 
-label = 'UNET_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, threshold)
+label = 'newmask_UNET_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_th{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, threshold, batch_size, lr)
+#f"UNET_a{alpha}b{beta}_{f0}Hz_D{int(max_train_levels[0])}-{int(max_train_levels[0])}_T{int(obsTime//86400)}_Tsft{Tsft}_step{n_step}_ndata{n_data*1000}_noise{noise_train}_latent{latent_channels}_th{threshold}"i
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
+print(f"Batch size: {batch_size}")
 print(f"Nominal frequency: {f0}")
 print(f"Detector: {det}")
 print(f"SFT duration (Tsft): {Tsft} seconds")
@@ -111,16 +118,16 @@ print(f"Data generation label: {label}")
 print(f"Save file label: {version}")
 print(f"Alpha (signal): {alpha}")
 print(f"Beta (noise): {beta}")
+print(f"Learning rate: {lr}")
 
 # Initialize dictionaries to store `pdet` by noise level
 train_pdet = {noise_level: [] for noise_level in max_train_levels}
 val_pdet = {noise_level: [] for noise_level in max_val_levels}
-batch_size = 8
 
 filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
 targets = np.load(filename, allow_pickle=True)['clean_image'][:500]
-masks = np.load(filename, allow_pickle=True)['signal_mask'][:500]
-
+#masks = np.load(filename, allow_pickle=True)['signal_mask'][:500]
+masks = new_mask(normalize(targets))
 data = []
 mask_data = []
 target_data = []
@@ -150,7 +157,6 @@ noise_data = load_noise_dataset(noise)
 
 val_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
-
 # load clean signal data 
 target_datasets = []
 mask_datasets = []
@@ -159,7 +165,8 @@ for i in range(n_data):  # Iterate over n datasets
     filename = '{6}/data/{0}Hz/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n1000_seed{5}.npz'.format(f0, det, size[0], size[1], Tsft, i, homedir)
     print("Using {}".format(filename))
     targets = np.load(filename, allow_pickle=True)['clean_image']
-    masks = np.load(filename, allow_pickle=True)['signal_mask']
+    #masks = np.load(filename, allow_pickle=True)['signal_mask']
+    masks = new_mask(normalize(targets))
     target_datasets.append(targets)
     mask_datasets.append(masks)
     
@@ -169,16 +176,13 @@ mask_datasets = np.concatenate(mask_datasets)
 ns = target_datasets.shape[0]
 
 # Initialize the model
-size_filter_in = 16
 dropout_prob = 0.0 # 0.1 
-# 16, 0.3 version 1
-model = UNet(input_channels=4, output_channels=4, size_filter_in=size_filter_in, dropout_prob=dropout_prob).to(device)
+model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 
 # Initialize the optimizer
-lr=1e-4
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=1000)
+scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=100)
 
 # Initialize variables to store the top models and their losses
 best_val_loss = float('inf')

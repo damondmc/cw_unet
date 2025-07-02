@@ -20,7 +20,7 @@ class UNet(nn.Module):
         # Bottleneck
         self.bottleneck = nn.Sequential(
             self.conv_block(size_filter_in * 8, size_filter_in * 16, kernel_init),
-            nn.Dropout(0.5)
+        #    nn.Dropout(0.5)
         )
         
         # Decoder
@@ -43,9 +43,9 @@ class UNet(nn.Module):
     def conv_block(self, in_channels, out_channels, kernel_init):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU(),
+            nn.PReLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.ReLU()
+            nn.PReLU()
         )
     
     def CropAndConcat(self, x, memory):
@@ -74,6 +74,6 @@ class UNet(nn.Module):
             x = layer(x)
         # Output
         x = self.output_layer(x)
-        #return torch.tanh(x)
-        return x
+        return torch.tanh(x)
+        #return x
     

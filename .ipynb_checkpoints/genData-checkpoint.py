@@ -10,7 +10,14 @@ import time
 import subprocess
 from collections import defaultdict
 
-def normalize(data, channel=False):
+def new_mask(data):
+    _data = np.abs(data)
+    mu = _data.mean(axis=(1, 2, 3), keepdims=True)
+    std = _data.std(axis=(1, 2, 3), keepdims=True)
+    new_mask = _data >  (mu + std ) 
+    return new_mask
+
+def normalize(data, channel=False, sym=True):
     """
     Normalizes each image using the global min and max across all channels.
     Supports single images (m, n, c) or batches (num, m, n, c).
@@ -45,11 +52,11 @@ def normalize(data, channel=False):
      
     # Avoid division by zero by setting denominator to 1 where max equals min
     denom = xmax - xmin
-    #denom = np.where(denom == 0, 1, denom)
-    
     # Normalize to [0, 1] per image, then scale to [-1, 1]
     normalized_data = (data - xmin) / denom
-    normalized_data = normalized_data * 2 - 1
+    
+    if sym:
+        normalized_data = normalized_data * 2 - 1
     
     return normalized_data
 
@@ -248,7 +255,6 @@ def generate_augmented_set(random_offsets, clean_image_set, mask, freq_size, num
     new_mask = np.zeros((random_offsets.size, freq_size, size[1], 4), dtype=bool)
 
     for i in tqdm(range(random_offsets.size)):
-        #freq_center = size[0] // 2
         # Find all (y, x, c) coordinates where arr is True
         true_indices = np.argwhere(mask[i])  # Shape (N, 3), where N is the number of True values
         # Find closest freq-bin to top and bottom across all channels

@@ -1,1 +1,0 @@
-so the jobs running now has wrong label, say nnoise_3000 is wrong, and fist attention_unet train is labeled as UNET.

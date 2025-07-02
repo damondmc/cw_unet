@@ -3,6 +3,26 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
 
+def MagPool2d(data, kernel_size, stride=None, padding=0):
+    """
+    Magnitude Pooling based on magnitude using two pooling operations.
+    
+    Args:
+        data (torch.Tensor): Input tensor of shape (k, c, m, n).
+        kernel_size (int or tuple): Size of the pooling window.
+        stride (int or tuple, optional): Stride of the pooling. Defaults to kernel_size.
+        padding (int or tuple, optional): Padding to be added before pooling. Defaults to 0.
+        
+    Returns:
+        torch.Tensor: Downsampled tensor, with the same sign as the original values.
+    """
+    # Perform max pooling on the original tensor and its negation
+    pos_pool = F.max_pool2d(data, kernel_size, stride, padding)
+    neg_pool = F.max_pool2d(-data, kernel_size, stride, padding)
+    
+    # Combine results: select the value with the larger magnitude
+    return torch.where(pos_pool >= neg_pool, pos_pool, -neg_pool)
+
 """
 Source: https://github.com/LeeJunHyun/Image_Segmentation.git
 """
@@ -52,7 +72,7 @@ class single_conv(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True)  # In-place ReLU to save memory
+            nn.LeakyReLU()  # In-place ReLU to save memory
         )
 
     def forward(self, x):
@@ -79,10 +99,10 @@ class conv_block(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True),
+            nn.LeakyReLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True)
+            nn.LeakyReLU()
         )
 
     def forward(self, x):
@@ -110,7 +130,7 @@ class up_conv(nn.Module):
             nn.Upsample(scale_factor=2),  # Doubles spatial dimensions
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True)
+            nn.LeakyReLU()
         )
 
     def forward(self, x):
@@ -139,7 +159,7 @@ class Recurrent_block(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True)
+            nn.LeakyReLU()
         )
 
     def forward(self, x):
@@ -212,7 +232,7 @@ class Attention_block(nn.Module):
             nn.Sigmoid()
         )
         
-        self.relu = nn.LeakyReLU(inplace=True)
+        self.relu = nn.LeakyReLU()
 
     def forward(self, g, x):
         """Forward pass to compute attention-weighted encoder features.
