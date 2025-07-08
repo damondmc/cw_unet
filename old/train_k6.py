@@ -1,7 +1,7 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet_leaky import Attention_UNet
+from model.unet_k import Attention_UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
@@ -70,7 +70,7 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 800
+num_epochs = 600
 noise_train = 1000 * args.n_noise
 print("Number of pure nosie = {}".format(noise_train))
 
@@ -96,11 +96,13 @@ size = (freq_size, obsTime // Tsft)
 n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 n_step = args.n_step
 
+threshold = 50
 # Initial noise levels and total possible noise levels 
 max_train_levels = [20]
 max_val_levels = [18, 19, 19.5, 20, 35, 35.6]
 
-label = 'mask2sigma_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, batch_size, lr)
+label = 'newmask_k_UNET_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_th{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, threshold, batch_size, lr)
+#f"UNET_a{alpha}b{beta}_{f0}Hz_D{int(max_train_levels[0])}-{int(max_train_levels[0])}_T{int(obsTime//86400)}_Tsft{Tsft}_step{n_step}_ndata{n_data*1000}_noise{noise_train}_latent{latent_channels}_th{threshold}"i
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Batch size: {batch_size}")
@@ -125,7 +127,7 @@ val_pdet = {noise_level: [] for noise_level in max_val_levels}
 filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
 targets = np.load(filename, allow_pickle=True)['clean_image'][:500]
 #masks = np.load(filename, allow_pickle=True)['signal_mask'][:500]
-masks = new_mask(normalize(targets), k=2)
+masks = new_mask(normalize(targets))
 data = []
 mask_data = []
 target_data = []
@@ -164,7 +166,7 @@ for i in range(n_data):  # Iterate over n datasets
     print("Using {}".format(filename))
     targets = np.load(filename, allow_pickle=True)['clean_image']
     #masks = np.load(filename, allow_pickle=True)['signal_mask']
-    masks = new_mask(normalize(targets), k=2)
+    masks = new_mask(normalize(targets))
     target_datasets.append(targets)
     mask_datasets.append(masks)
     

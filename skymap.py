@@ -1,0 +1,128 @@
+#!/home/damoncht/.conda/envs/ml/bin/python
+import numpy as np
+from scipy.interpolate import interp1d
+from tqdm import tqdm
+import torch
+from utils import *
+from genData import *
+from model.unet_leaky import Attention_UNet
+
+def load_signal_datasetv(images, labels):
+    """
+    Load the full dataset once at the beginning, including noisy and pure noise images.
+    Store indices for each noise level for easy selection during training.
+
+    Parameters:
+        size (tuple): The size of the images (height, width).
+        noise_levels_to_sample (list): List of noise levels to include in the dataset.
+        file_paths (dict): Dictionary with paths for noisy and pure noise datasets.
+        pure_noise (bool): Whether to include pure noise data in the dataset.
+
+    Returns:
+        dataset (TensorDataset): The full dataset containing all samples.
+        noise_level_indices (dict): A dictionary storing indices for each noise level.
+    """
+
+    # Convert to torch tensors
+    images_tensor = torch.tensor(images, dtype=torch.float32).permute(0, 3, 1, 2)
+    labels_tensor = torch.tensor(labels, dtype=torch.float64)
+    
+    full_dataset = TensorDataset(images_tensor, labels_tensor)
+    
+    return full_dataset
+
+# Set random seeds for reproducibility
+np.random.seed(111)
+torch.manual_seed(111)
+
+# Parameters
+det = 'H1L1'
+f0 = 500
+size = (512, 64)
+Tsft = 14400
+max_train_levels = [18, 19, 20, 25]
+seeds = range(200)  # Seeds 1 to 6
+num_noise_realizations = 200
+version = 'H1L1_newmask_UNET_a1.0b1.0_500Hz_D20-20_T10_Tsft14400_step1_ndata5000_noise5000_latent64_th50_batch8_lr0.0001_512x64_MSELoss_dropout0'
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+output_file = 'depth_at_pdet_0.9.npz'
+
+# Initialize model
+model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=64, dropout_prob=0).to(device)
+best_val_model = torch.load(f"./trained_model/500Hz/best_val_model_{version}.pth", weights_only=False)
+model.load_state_dict(best_val_model)
+model.eval()
+
+# Function to compute detection statistic
+def compute_detection_statistic(images, ref_distribution=None):
+    detection_stats = np.mean(np.abs(images.transpose(0, 2, 3, 1)), axis=(1, 2, 3))
+    return detection_stats
+
+# Generate noise-only data for x_pfa
+noise = np.empty((500,) + size + (4,))
+for i in range(noise.shape[0]):
+    noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
+noise = normalize(noise)
+noise_data = load_noise_dataset(noise)
+noise_loader = make_data_loader([noise_data], batch_size=8, shuffle=False)
+
+# Compute x_pfa
+noise_predictions = []
+with torch.no_grad():
+    for batch in tqdm(noise_loader, desc="Processing noise for x_pfa"):
+        images = batch[0].to(device)
+        outputs = model(images)
+        noise_predictions.append(outputs.cpu().numpy())
+noise_predictions = np.concatenate(noise_predictions, axis=0)
+x_pfa = np.percentile(compute_detection_statistic(noise_predictions), (1 - 0.71/100) * 100)
+
+# Process each signal
+depth_at_pdet_90 = []
+for seed in seeds:
+    # Load data
+    filename = f'/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/skymap_{f0}Hz_H1L1_{size[0]}x{size[1]}_{Tsft}s_4c_traindata_n1000_seed{seed}.npz'
+    targets = np.load(filename, allow_pickle=True)['clean_image']  # Shape: (1000, 512, 64, 4)
+    #targets = normalize(targets)
+
+    for signal_idx in tqdm(range(5), desc=f"Processing signals for seed {seed}"):
+        signal = targets[signal_idx*num_noise_realizations:(signal_idx+1)*num_noise_realizations]  # Shape: (1, 512, 64, 4)
+        pdet_values = []
+
+        for Sn in max_train_levels:
+            # Generate 200 noise realizations
+            noisy_signals = np.empty((num_noise_realizations,) + size + (4,))
+            for i in range(num_noise_realizations):
+                noise = simNoise(sqrtSn=Sn, Tsft=Tsft, size=size, ndet=2, norm=False)
+                noisy_signals[i] = normalize(noise + signal[i])
+  
+            dataset = load_signal_datasetv(noisy_signals, [Sn] * num_noise_realizations)
+            loader = make_data_loader([dataset], batch_size=8, shuffle=False)
+
+            # Evaluate model
+            predictions = []
+            with torch.no_grad():
+                for batch in loader:
+                    images = batch[0].to(device)
+                    outputs = model(images)
+                    predictions.append(outputs.cpu().numpy())
+            predictions = np.concatenate(predictions, axis=0)
+
+            # Compute detection statistic and pdet
+            detection_stats = compute_detection_statistic(predictions)
+            pdet = np.sum(detection_stats > x_pfa) / detection_stats.size
+            pdet_values.append(pdet)
+        # Interpolate to find depth at pdet = 0.9
+        pdet_values = np.array(pdet_values)
+        depth = np.array(max_train_levels)
+        
+        interp_func = interp1d(pdet_values, depth, kind='linear', fill_value="extrapolate")
+        depth_value = interp_func(0.9)
+        depth_at_pdet_90.append(depth_value)
+
+# Save results
+depth_at_pdet_90 = np.array(depth_at_pdet_90)
+np.savez(output_file, depth_at_pdet_90=depth_at_pdet_90)
+
+print(f"Depths at pdet = 0.9 saved to {output_file}")
+print(f"Number of valid depths: {np.sum(~np.isnan(depth_at_pdet_90))}")
+print(f"Mean depth at pdet = 0.9: {np.nanmean(depth_at_pdet_90):.2f}")

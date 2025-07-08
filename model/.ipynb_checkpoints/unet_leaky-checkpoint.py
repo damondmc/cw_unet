@@ -72,7 +72,7 @@ class single_conv(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU()  # In-place ReLU to save memory
+            nn.LeakyReLU(inplace=True)  # In-place ReLU to save memory
         )
 
     def forward(self, x):
@@ -99,10 +99,10 @@ class conv_block(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(),
+            nn.LeakyReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU()
+            nn.LeakyReLU(inplace=True)
         )
 
     def forward(self, x):
@@ -130,7 +130,7 @@ class up_conv(nn.Module):
             nn.Upsample(scale_factor=2),  # Doubles spatial dimensions
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU()
+            nn.LeakyReLU(inplace=True)
         )
 
     def forward(self, x):
@@ -159,7 +159,7 @@ class Recurrent_block(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU()
+            nn.LeakyReLU(inplace=True)
         )
 
     def forward(self, x):
@@ -232,7 +232,7 @@ class Attention_block(nn.Module):
             nn.Sigmoid()
         )
         
-        self.relu = nn.LeakyReLU()
+        self.relu = nn.LeakyReLU(inplace=True)
 
     def forward(self, g, x):
         """Forward pass to compute attention-weighted encoder features.
@@ -251,49 +251,50 @@ class Attention_block(nn.Module):
         return x * psi  # Apply attention weights to encoder features
     
 class UNet(nn.Module):
-    def __init__(self, input_channels=1, output_channels=1, latent_channels=64):
+    def __init__(self, in_channels=1, out_channels=1, latent_channels=64, dropout_prob=0):
         super(UNet, self).__init__()
 
         # Initialize filters and kernel weights
         kernel_init = nn.init.kaiming_normal_
         # Encoder
         self.encoder = nn.ModuleList([
-            self.conv_block(input_channels, latent_channels, kernel_init),
-            self.conv_block(latent_channels, latent_channels * 2, kernel_init),
-            self.conv_block(latent_channels * 2, latent_channels * 4, kernel_init),
-            self.conv_block(latent_channels * 4, latent_channels * 8, kernel_init)
+            conv_block(in_channels=in_channels, out_channels=latent_channels),
+            conv_block(in_channels=latent_channels, out_channels=latent_channels*2),
+            conv_block(in_channels=latent_channels*2, out_channels=latent_channels*4),
+            conv_block(in_channels=latent_channels*4, out_channels=latent_channels*8)
         ])
         
         # Bottleneck
         self.bottleneck = nn.Sequential(
-            self.conv_block(latent_channels * 8, latent_channels * 16, kernel_init),
-        #    nn.Dropout(0.5)
+            conv_block(in_channels=latent_channels*8, out_channels=latent_channels*16),
+            nn.Dropout2d(p=dropout_prob) if dropout_prob > 0 else nn.Identity()
         )
-        
         # Decoder
         self.decoder = nn.ModuleList([
-            self.conv_block(latent_channels * 16, latent_channels * 8, kernel_init),
-            self.conv_block(latent_channels * 8, latent_channels * 4, kernel_init),
-            self.conv_block(latent_channels * 4, latent_channels * 2, kernel_init),
-            self.conv_block(latent_channels * 2, latent_channels, kernel_init)
+            conv_block(in_channels=latent_channels*16, out_channels=latent_channels*8),
+            conv_block(in_channels=latent_channels*8, out_channels=latent_channels*4),
+            conv_block(in_channels=latent_channels*4, out_channels=latent_channels*2),
+            conv_block(in_channels=latent_channels*2, out_channels=latent_channels)
         ])
 
         self.upsample_layer = nn.ModuleList([
-            nn.ConvTranspose2d(latent_channels * 16, latent_channels * 8, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(latent_channels * 8, latent_channels * 4, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(latent_channels * 4, latent_channels * 2, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(latent_channels * 2, latent_channels, kernel_size=2, stride=2)
+            up_conv(in_channels=latent_channels*16, out_channels=latent_channels*8),
+            up_conv(in_channels=latent_channels*8, out_channels=latent_channels*4),
+            up_conv(in_channels=latent_channels*4, out_channels=latent_channels*2),
+            up_conv(in_channels=latent_channels*2, out_channels=latent_channels)
         ])
         # Output layer
-        self.output_layer = nn.Conv2d(latent_channels, output_channels, kernel_size=1)
-
-    def conv_block(self, in_channels, out_channels, kernel_init):
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.LeakyReLU(),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.LeakyReLU()
+        self.output_layer = nn.Sequential(
+            nn.Conv2d(latent_channels, out_channels, kernel_size=1, stride=1, padding=0),
+            nn.Tanh()
         )
+    # def conv_block(self, in_channels, out_channels, kernel_init):
+    #     return nn.Sequential(
+    #         nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+    #         nn.LeakyReLU(inplace=True),
+    #         nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+    #         nn.LeakyReLU(inplace=True)
+    #     )
     
     def CropAndConcat(self, x, memory):
         contracting_x = torchvision.transforms.functional.center_crop(contracting_x, [x.shape[2], x.shape[3]])
@@ -505,7 +506,7 @@ class R2Att_UNet(nn.Module):
         t (int): Number of recurrent iterations in RRCNN blocks (default: 2).
         latent_channels (int): Number of channels in the first encoder layer (default: 64).
     """
-    def __init__(self, in_channels=3, out_channels=1, t=2, latent_channels=64, dropout_prob=0):
+    def __init__(self, in_channels=1, out_channels=1, t=2, latent_channels=64, dropout_prob=0):
         super(R2Att_UNet, self).__init__()
         
         self.Maxpool = nn.MaxPool2d(kernel_size=2, stride=2)

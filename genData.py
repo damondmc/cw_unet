@@ -10,11 +10,11 @@ import time
 import subprocess
 from collections import defaultdict
 
-def new_mask(data):
+def new_mask(data, k=1):
     _data = np.abs(data)
     mu = _data.mean(axis=(1, 2, 3), keepdims=True)
     std = _data.std(axis=(1, 2, 3), keepdims=True)
-    new_mask = _data >  (mu + std ) 
+    new_mask = _data >  (mu + k*std ) 
     return new_mask
 
 def normalize(data, channel=False, sym=True):
@@ -106,7 +106,7 @@ def genSampleParam(f0min, f0max, f1min, f1max, nSample):
     f0_arr = np.random.uniform(f0min, f0max, nSample)
     f1_arr = np.random.uniform(f1min, f1max, nSample)
     phi_arr = np.random.uniform(0, 2*np.pi, nSample)
-    psi_arr = np.random.uniform(0, np.pi, nSample)
+    psi_arr = np.random.uniform(-np.pi/4, np.pi/4, nSample)
     cosi_arr = np.random.uniform(-1, 1, nSample)
     
     alpha_arr = np.random.uniform(0, 2*np.pi, nSample)
@@ -114,6 +114,52 @@ def genSampleParam(f0min, f0max, f1min, f1max, nSample):
     delta_arr = np.arcsin(sinDelta)
     
     params = np.column_stack((f0_arr, f1_arr, phi_arr, psi_arr, cosi_arr, alpha_arr, delta_arr))
+    return params
+
+def genSampleParam_skymap(f0min, f0max, f1min, f1max, nSky, nSample):
+    """
+    Generate parameters for nSample * nSky combinations, with each sky location repeated nSample times
+    consecutively, paired with nSample sets of f0, f1, phi, psi, cosi.
+
+    Parameters:
+    - f0min, f0max (float): Frequency range for parameter sampling.
+    - f1min, f1max (float): Frequency derivative range for parameter sampling.
+    - nSky (int): Number of unique sky locations.
+    - nSample (int): Number of parameter sets for f0, f1, phi, psi, cosi.
+
+    Returns:
+    - params (np.ndarray): Array of shape (nSample * nSky, 7) containing parameter combinations
+                          [f0, f1, phi, psi, cosi, alpha, delta], ordered by sky location.
+    """
+    print("Sample generation.")
+    
+    total_samples = nSky * nSample
+    
+    # Generate nSample sets of non-sky parameters
+    f0_arr = np.random.uniform(f0min, f0max, nSample)
+    f1_arr = np.random.uniform(f1min, f1max, nSample)
+    phi_arr = np.random.uniform(0, 2 * np.pi, nSample)
+    psi_arr = np.random.uniform(-np.pi/4, np.pi/4, nSample)
+    cosi_arr = np.random.uniform(-1, 1, nSample)
+    
+    # Tile non-sky parameters to match each sky location
+    f0_all = np.tile(f0_arr, nSky)
+    f1_all = np.tile(f1_arr, nSky)
+    phi_all = np.tile(phi_arr, nSky)
+    psi_all = np.tile(psi_arr, nSky)
+    cosi_all = np.tile(cosi_arr, nSky)
+    
+    # Generate nSky unique sky locations
+    alpha_arr = np.random.uniform(0, 2 * np.pi, nSky)
+    sinDelta = np.random.uniform(-1, 1, nSky)
+    delta_arr = np.arcsin(sinDelta)
+    
+    # Repeat each sky location nSample times consecutively
+    alpha_all = np.repeat(alpha_arr, nSample)
+    delta_all = np.repeat(delta_arr, nSample)
+    
+    # Combine into parameter array
+    params = np.column_stack((f0_all, f1_all, phi_all, psi_all, cosi_all, alpha_all, delta_all))
     return params
 
 
@@ -177,7 +223,7 @@ def simSignal(label, homedir, jobID, f0, f1, ra, dec, cosi, psi, phi, obsTime, s
     return [frequency, timestamps, fourier_data]
 
 # Assuming genGridParam, genSampleParam, and simSignal are pre-defined functions
-def generate_mock_cw_signals(label, params, obsTime=921600, num_cpus=8, band=0.426, Tsft=7200, h0=1, Sn=0, startTime=1368970000,
+def generate_mock_cw_signals(label, params, obsTime=921600, num_cpus=8, band=0.5, Tsft=7200, h0=1, Sn=0, startTime=1368970000,
                              nSample=800, homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/'):
     """
     Generate mock continuous wave signals based on input arguments.

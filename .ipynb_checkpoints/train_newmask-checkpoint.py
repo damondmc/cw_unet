@@ -1,7 +1,7 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet_leaky import Attention_UNet
+from model.unet_leaky import UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
@@ -70,7 +70,7 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 800
+num_epochs = 600
 noise_train = 1000 * args.n_noise
 print("Number of pure nosie = {}".format(noise_train))
 
@@ -96,13 +96,11 @@ size = (freq_size, obsTime // Tsft)
 n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 n_step = args.n_step
 
-threshold = 50
 # Initial noise levels and total possible noise levels 
 max_train_levels = [20]
 max_val_levels = [18, 19, 19.5, 20, 35, 35.6]
 
-label = 'newmask_UNET_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_th{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, threshold, batch_size, lr)
-#f"UNET_a{alpha}b{beta}_{f0}Hz_D{int(max_train_levels[0])}-{int(max_train_levels[0])}_T{int(obsTime//86400)}_Tsft{Tsft}_step{n_step}_ndata{n_data*1000}_noise{noise_train}_latent{latent_channels}_th{threshold}"i
+label = 'newmask_oUNET_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, batch_size, lr)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Batch size: {batch_size}")
@@ -177,7 +175,7 @@ ns = target_datasets.shape[0]
 
 # Initialize the model
 dropout_prob = 0.0 # 0.1 
-model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
+model = UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 
 # Initialize the optimizer

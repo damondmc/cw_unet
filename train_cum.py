@@ -70,7 +70,7 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 800
+num_epochs = 600
 noise_train = 1000 * args.n_noise
 print("Number of pure nosie = {}".format(noise_train))
 
@@ -97,10 +97,10 @@ n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 n_step = args.n_step
 
 # Initial noise levels and total possible noise levels 
-max_train_levels = [20]
+max_train_levels = 18
 max_val_levels = [18, 19, 19.5, 20, 35, 35.6]
 
-label = 'mask2sigma_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, batch_size, lr)
+label = 'newmask_UNET_a{}b{}_{}Hz_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, batch_size, lr)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Batch size: {batch_size}")
@@ -119,13 +119,12 @@ print(f"Beta (noise): {beta}")
 print(f"Learning rate: {lr}")
 
 # Initialize dictionaries to store `pdet` by noise level
-train_pdet = {noise_level: [] for noise_level in max_train_levels}
+train_pdet = {noise_level: [] for noise_level in range(10, 31)}
 val_pdet = {noise_level: [] for noise_level in max_val_levels}
 
 filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
 targets = np.load(filename, allow_pickle=True)['clean_image'][:500]
-#masks = np.load(filename, allow_pickle=True)['signal_mask'][:500]
-masks = new_mask(normalize(targets), k=2)
+masks = new_mask(normalize(targets))
 data = []
 mask_data = []
 target_data = []
@@ -164,7 +163,7 @@ for i in range(n_data):  # Iterate over n datasets
     print("Using {}".format(filename))
     targets = np.load(filename, allow_pickle=True)['clean_image']
     #masks = np.load(filename, allow_pickle=True)['signal_mask']
-    masks = new_mask(normalize(targets), k=2)
+    masks = new_mask(normalize(targets))
     target_datasets.append(targets)
     mask_datasets.append(masks)
     
@@ -202,11 +201,11 @@ print(model)
 for epoch in tqdm(range(num_epochs)):   
     if epoch % n_step == 0:
         # generate noise 
-        noise = simulate_noise_batch(max_train_levels[0], Tsft, size, ns, epoch, num_cpus, 1)
+        noise = simulate_noise_batch(max_train_levels, Tsft, size, ns, epoch, num_cpus, 1)
 
         # add noise into clean signal 
         data = normalize(target_datasets + noise)
-        label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
+        label_data = [max_train_levels] * data.shape[0]  # Extend labels
         data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
         
         # generate pure noise training data       # original 500 noise 
@@ -294,16 +293,19 @@ for epoch in tqdm(range(num_epochs)):
     pfa = compute_threshold_from_pfa(noise_det)
     
     # Compute training pdet by noise level
-    for noise_level in train_pdet.keys():
-        signal_det = train_det[train_label == float(noise_level)]
-        if signal_det.size != 0:
-            pdet = (signal_det > pfa).sum() / signal_det.size 
-            train_pdet[noise_level].append(pdet)
-            print("D={}, pdet={}%".format(noise_level, pdet*100))
-        else:
-            pdet = np.nan
-            train_pdet[noise_level].append(pdet)
-        
+    signal_det = train_det[train_label == float(max_train_levels)]
+    pdet = (signal_det > pfa).sum() / signal_det.size if signal_det.size != 0 else np.nan
+    train_pdet[max_train_levels].append(pdet)
+    print(f"D={max_train_levels}, pdet={pdet*100:.2f}%")
+
+    if pdet > 0.9 and max_train_levels <= 30:
+        max_train_levels += 1
+        print(f"Increasing noise level to D={max_train_levels}")
+    
+#    for noise_level in train_pdet.keys():
+#        if noise_level != max_train_levels:
+#            train_pdet[noise_level].append(np.nan)
+
     # Compute validation pdet by noise level
     val_det = np.concatenate(val_det, axis=0)
     val_label = np.concatenate(val_label, axis=0)    
@@ -324,7 +326,6 @@ for epoch in tqdm(range(num_epochs)):
             pdet = np.nan
             val_pdet[noise_level].append(pdet) 
                         
-    #scheduler.step(val_loss)
     scheduler.step(val_pdet[max_val_levels[-1]][-1])
     # Print epoch loss every 5 epochs
     if epoch % 3 == 0:

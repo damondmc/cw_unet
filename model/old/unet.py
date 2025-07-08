@@ -3,26 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
 
-def MagPool2d(data, kernel_size, stride=None, padding=0):
-    """
-    Magnitude Pooling based on magnitude using two pooling operations.
-    
-    Args:
-        data (torch.Tensor): Input tensor of shape (k, c, m, n).
-        kernel_size (int or tuple): Size of the pooling window.
-        stride (int or tuple, optional): Stride of the pooling. Defaults to kernel_size.
-        padding (int or tuple, optional): Padding to be added before pooling. Defaults to 0.
-        
-    Returns:
-        torch.Tensor: Downsampled tensor, with the same sign as the original values.
-    """
-    # Perform max pooling on the original tensor and its negation
-    pos_pool = F.max_pool2d(data, kernel_size, stride, padding)
-    neg_pool = F.max_pool2d(-data, kernel_size, stride, padding)
-    
-    # Combine results: select the value with the larger magnitude
-    return torch.where(pos_pool >= neg_pool, pos_pool, -neg_pool)
-
 """
 Source: https://github.com/LeeJunHyun/Image_Segmentation.git
 """
@@ -72,7 +52,7 @@ class single_conv(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.PReLU()  # In-place ReLU to save memory
+            nn.ReLU(inplace=True)  # In-place ReLU to save memory
         )
 
     def forward(self, x):
@@ -99,10 +79,10 @@ class conv_block(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.PReLU(),
+            nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.PReLU()
+            nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
@@ -130,7 +110,7 @@ class up_conv(nn.Module):
             nn.Upsample(scale_factor=2),  # Doubles spatial dimensions
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.PReLU()
+            nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
@@ -159,7 +139,7 @@ class Recurrent_block(nn.Module):
         self.conv = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_channels),
-            nn.PReLU()
+            nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
@@ -232,7 +212,7 @@ class Attention_block(nn.Module):
             nn.Sigmoid()
         )
         
-        self.relu = nn.PReLU()
+        self.relu = nn.ReLU(inplace=True)
 
     def forward(self, g, x):
         """Forward pass to compute attention-weighted encoder features.
@@ -251,48 +231,49 @@ class Attention_block(nn.Module):
         return x * psi  # Apply attention weights to encoder features
     
 class UNet(nn.Module):
-    def __init__(self, input_channels=1, output_channels=1, latent_channels=64):
+    def __init__(self, input_channels=1, output_channels=1):
         super(UNet, self).__init__()
 
         # Initialize filters and kernel weights
+        size_filter_in = 16
         kernel_init = nn.init.kaiming_normal_
         # Encoder
         self.encoder = nn.ModuleList([
-            self.conv_block(input_channels, latent_channels, kernel_init),
-            self.conv_block(latent_channels, latent_channels * 2, kernel_init),
-            self.conv_block(latent_channels * 2, latent_channels * 4, kernel_init),
-            self.conv_block(latent_channels * 4, latent_channels * 8, kernel_init)
+            self.conv_block(input_channels, size_filter_in, kernel_init),
+            self.conv_block(size_filter_in, size_filter_in * 2, kernel_init),
+            self.conv_block(size_filter_in * 2, size_filter_in * 4, kernel_init),
+            self.conv_block(size_filter_in * 4, size_filter_in * 8, kernel_init)
         ])
         
         # Bottleneck
         self.bottleneck = nn.Sequential(
-            self.conv_block(latent_channels * 8, latent_channels * 16, kernel_init),
+            self.conv_block(size_filter_in * 8, size_filter_in * 16, kernel_init),
         #    nn.Dropout(0.5)
         )
         
         # Decoder
         self.decoder = nn.ModuleList([
-            self.conv_block(latent_channels * 16, latent_channels * 8, kernel_init),
-            self.conv_block(latent_channels * 8, latent_channels * 4, kernel_init),
-            self.conv_block(latent_channels * 4, latent_channels * 2, kernel_init),
-            self.conv_block(latent_channels * 2, latent_channels, kernel_init)
+            self.conv_block(size_filter_in * 16, size_filter_in * 8, kernel_init),
+            self.conv_block(size_filter_in * 8, size_filter_in * 4, kernel_init),
+            self.conv_block(size_filter_in * 4, size_filter_in * 2, kernel_init),
+            self.conv_block(size_filter_in * 2, size_filter_in, kernel_init)
         ])
 
         self.upsample_layer = nn.ModuleList([
-            nn.ConvTranspose2d(latent_channels * 16, latent_channels * 8, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(latent_channels * 8, latent_channels * 4, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(latent_channels * 4, latent_channels * 2, kernel_size=2, stride=2),
-            nn.ConvTranspose2d(latent_channels * 2, latent_channels, kernel_size=2, stride=2)
+            nn.ConvTranspose2d(size_filter_in * 16, size_filter_in * 8, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(size_filter_in * 8, size_filter_in * 4, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(size_filter_in * 4, size_filter_in * 2, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(size_filter_in * 2, size_filter_in, kernel_size=2, stride=2)
         ])
         # Output layer
-        self.output_layer = nn.Conv2d(latent_channels, output_channels, kernel_size=1)
+        self.output_layer = nn.Conv2d(size_filter_in, output_channels, kernel_size=1)
 
     def conv_block(self, in_channels, out_channels, kernel_init):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
-            nn.LeakyReLU(),
+            nn.ReLU(),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
-            nn.LeakyReLU()
+            nn.ReLU()
         )
     
     def CropAndConcat(self, x, memory):
@@ -371,10 +352,8 @@ class R2_UNet(nn.Module):
             up_conv(in_channels=latent_channels*2, out_channels=latent_channels)
         ])
 
-        self.output_layer = nn.Sequential(
-            nn.Conv2d(latent_channels, out_channels, kernel_size=1, stride=1, padding=0),
-            nn.Tanh()
-        )
+        self.Conv_1x1 = nn.Conv2d(latent_channels, out_channels, kernel_size=1, stride=1, padding=0)
+
     def forward(self, x):
         """Forward pass through R2U-Net with encoder-decoder and skip connections.
         
@@ -402,7 +381,7 @@ class R2_UNet(nn.Module):
             x = rrcnn(x)  # Apply RRCNN block
 
         # Final 1x1 convolution for output
-        x = self.output_layer(x)
+        x = self.Conv_1x1(x)
         return x
 
 class Attention_UNet(nn.Module):
@@ -459,10 +438,7 @@ class Attention_UNet(nn.Module):
             Attention_block(F_g=latent_channels, F_l=latent_channels, F_int=latent_channels//2)
         ])
 
-        self.output_layer = nn.Sequential(
-            nn.Conv2d(latent_channels, out_channels, kernel_size=1, stride=1, padding=0),
-            nn.Tanh()
-        )
+        self.Conv_1x1 = nn.Conv2d(latent_channels, out_channels, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x):
         """Forward pass through Attention U-Net with encoder-decoder and attention gates.
@@ -493,7 +469,7 @@ class Attention_UNet(nn.Module):
             x = conv(x)  # Apply conv block
 
         # Final 1x1 convolution for output
-        x = self.output_layer(x)
+        x = self.Conv_1x1(x)
         return x
 
 class R2Att_UNet(nn.Module):
@@ -549,11 +525,8 @@ class R2Att_UNet(nn.Module):
             Attention_block(F_g=latent_channels, F_l=latent_channels, F_int=latent_channels//2)
         ])
 
-        self.output_layer = nn.Sequential(
-            nn.Conv2d(latent_channels, out_channels, kernel_size=1, stride=1, padding=0),
-            nn.Tanh()
-        )
-        
+        self.Conv_1x1 = nn.Conv2d(latent_channels, out_channels, kernel_size=1, stride=1, padding=0)
+
     def forward(self, x):
         """Forward pass through Attention R2U-Net with encoder-decoder, attention, and skip connections.
         
@@ -583,5 +556,5 @@ class R2Att_UNet(nn.Module):
             x = rrcnn(x)  # Apply RRCNN block
 
         # Final 1x1 convolution for output
-        x = self.output_layer(x)
+        x = self.Conv_1x1(x)
         return x

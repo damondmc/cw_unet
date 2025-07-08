@@ -1,7 +1,7 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet_leaky import Attention_UNet
+from model.unet_v2 import Attention_UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
@@ -100,7 +100,7 @@ n_step = args.n_step
 max_train_levels = [20]
 max_val_levels = [18, 19, 19.5, 20, 35, 35.6]
 
-label = 'mask2sigma_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, batch_size, lr)
+label = 'newmask_UNET_v3_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_step{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_step, n_data*1000, noise_train, latent_channels, batch_size, lr)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Batch size: {batch_size}")
@@ -125,7 +125,7 @@ val_pdet = {noise_level: [] for noise_level in max_val_levels}
 filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
 targets = np.load(filename, allow_pickle=True)['clean_image'][:500]
 #masks = np.load(filename, allow_pickle=True)['signal_mask'][:500]
-masks = new_mask(normalize(targets), k=2)
+masks = new_mask(normalize(targets))
 data = []
 mask_data = []
 target_data = []
@@ -164,7 +164,7 @@ for i in range(n_data):  # Iterate over n datasets
     print("Using {}".format(filename))
     targets = np.load(filename, allow_pickle=True)['clean_image']
     #masks = np.load(filename, allow_pickle=True)['signal_mask']
-    masks = new_mask(normalize(targets), k=2)
+    masks = new_mask(normalize(targets))
     target_datasets.append(targets)
     mask_datasets.append(masks)
     

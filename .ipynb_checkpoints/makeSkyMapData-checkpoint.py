@@ -13,20 +13,13 @@ parser.add_argument('--Tsft', type=int, default=7200, help='SFT duration in seco
 parser.add_argument('--obsTime', type=int, default=921600, help='Observation time in seconds (default: 921600)')
 parser.add_argument('--freq_size', type=int, default=256, help='Frequency band size (default: 256)')
 parser.add_argument('--num_cpus', type=int, default=20, help='Number of CPUs to use (default: 20)')
-parser.add_argument('--v', action='store_true', help='Enable validation mode (default: False)')
 args = parser.parse_args()
 
 t0 = time.time()
 print("Start")
 
 # Set random seed for reproducibility
-np.random.seed(7)
-
-if args.v:
-    np.random.seed(23) 
-    print('Validation set.')
-
-#np.random.seed(2323) 
+np.random.seed(23) 
 
 # Use arguments from argparse
 f0min = args.f0min
@@ -40,7 +33,8 @@ size = (freq_size, obsTime // Tsft)
     
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/' 
 
-nSample = 10000
+nSample = 200
+nSky = 3000
 neach = 1000
 
 f1min = -1e-10 
@@ -54,21 +48,14 @@ print(f"Frequency band size: {freq_size}")
 print(f"Spectrogram size: {size}")
 
 
-label = '{}{}4cD10NT{}s'.format(f0min, f0max, Tsft)
-if args.v:
-    label += 'v'
+label = 'skymap{}{}4cD10NT{}s'.format(f0min, f0max, Tsft)
 version = '{}_{}x{}_{}s_4c'.format(det, size[0], size[1], Tsft)
 
-
 # Generate parameters based on the chosen method
-params = genSampleParam(f0min, f0max, f1min, f1max, nSample)
+params = genSampleParam_skymap(f0min, f0max, f1min, f1max, nSky, nSample)
 
 batch_size = 8
-
-if args.v:
-    nSample = 5000 
-
-n = int(nSample//neach)
+n = int(nSample*nSky//neach)
 
 for seed in range(n):
     p = params[seed*neach:(seed+1)*neach]
@@ -76,16 +63,9 @@ for seed in range(n):
     signal_dataset = crop_signal_img(_d1, _d2, freq_size=freq_size, threshold = 50)
     
     if f0min == f0max:
-        if args.v:
-            filename = "data/validation/{}Hz_{}_traindata_n{}_seed{}.npz".format(f0min, version, neach, seed)
-        else:
-            filename = "data/{0}Hz/{0}Hz_{1}_traindata_n{2}_seed{3}.npz".format(f0min, version, neach, seed)
+        filename = "data/validation/skymap_{}Hz_{}_traindata_n{}_seed{}.npz".format(f0min, version, neach, seed)
     else:
-        if args.v:
-            filename = "data/validation/{}-{}Hz_{}_traindata_n{}_seed{}.npz".format(f0min, f0max, version, neach, seed)
-        else:
-            filename = "data/{0}-{1}Hz/{0}-{1}Hz_{2}_traindata_n{3}_seed{4}.npz".format(f0min, f0max, version, neach, seed)
-
+        filename = "data/validation/skymap_{}-{}Hz_{}_traindata_n{}_seed{}.npz".format(f0min, f0max, version, neach, seed)
     np.savez(filename, **signal_dataset, f0min=f0min, f0max=f0max, params=p)
     print("Saved to {}".format(filename)) 
     
