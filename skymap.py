@@ -5,7 +5,7 @@ from tqdm import tqdm
 import torch
 from utils import *
 from genData import *
-from model.unet_leaky import Attention_UNet
+from model.unet import Attention_UNet
 
 def load_signal_datasetv(images, labels):
     """
@@ -40,12 +40,12 @@ det = 'H1L1'
 f0 = 500
 size = (512, 64)
 Tsft = 14400
-max_train_levels = [18, 19, 20, 25]
-seeds = range(200)  # Seeds 1 to 6
+max_train_levels = [16, 18, 20, 22]
+seeds = range(450)  # Seeds 1 to 6
 num_noise_realizations = 200
-version = 'H1L1_newmask_UNET_a1.0b1.0_500Hz_D20-20_T10_Tsft14400_step1_ndata5000_noise5000_latent64_th50_batch8_lr0.0001_512x64_MSELoss_dropout0'
+version = version = 'H1L1_a1.0b1.0_500Hz_D21-21_T10_Tsft14400_ndata7000_noise7000_latent64_batch8_lr0.0001_512x64_MSELoss_dropout0'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-output_file = 'depth_at_pdet_0.9.npz'
+output_file = '450_depth_at_pdet_0.9.npz'
 
 # Initialize model
 model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=64, dropout_prob=0).to(device)
@@ -59,7 +59,7 @@ def compute_detection_statistic(images, ref_distribution=None):
     return detection_stats
 
 # Generate noise-only data for x_pfa
-noise = np.empty((500,) + size + (4,))
+noise = np.empty((1000,) + size + (4,))
 for i in range(noise.shape[0]):
     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
 noise = normalize(noise)

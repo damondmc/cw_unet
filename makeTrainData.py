@@ -6,8 +6,7 @@ import json
 import argparse
 
 parser = argparse.ArgumentParser(description="Generate mock CW signal dataset.")
-parser.add_argument('--f0min', type=int, default=500, help='Base minimum frequency (default: 500)')
-parser.add_argument('--f0max', type=int, default=500, help='Base maximum frequency (default: 500)')
+parser.add_argument('--f0', type=int, default=500, help='Base frequency (default: 500), set 0 to set 20-1000Hz')
 parser.add_argument('--det', type=str, default='H1L1', help='Detector name (default: H1L1)')
 parser.add_argument('--Tsft', type=int, default=7200, help='SFT duration in seconds (default: 7200)')
 parser.add_argument('--obsTime', type=int, default=921600, help='Observation time in seconds (default: 921600)')
@@ -29,8 +28,7 @@ if args.v:
 #np.random.seed(2323) 
 
 # Use arguments from argparse
-f0min = args.f0min
-f0max = args.f0max
+f0 = args.f0
 det = args.det
 Tsft = args.Tsft
 obsTime = args.obsTime
@@ -40,7 +38,7 @@ size = (freq_size, obsTime // Tsft)
     
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/' 
 
-nSample = 10000
+nSample = 8000
 neach = 1000
 
 f1min = -1e-10 
@@ -54,14 +52,17 @@ print(f"Frequency band size: {freq_size}")
 print(f"Spectrogram size: {size}")
 
 
-label = '{}{}4cD10NT{}s'.format(f0min, f0max, Tsft)
+label = '{}4cD10NT{}s{}'.format(f0, Tsft,obsTime)
 if args.v:
     label += 'v'
 version = '{}_{}x{}_{}s_4c'.format(det, size[0], size[1], Tsft)
 
 
 # Generate parameters based on the chosen method
-params = genSampleParam(f0min, f0max, f1min, f1max, nSample)
+if f0 == 0:
+    params = genSampleParam(20, 1000, f1min, f1max, nSample)
+else:
+    params = genSampleParam(f0, f0, f1min, f1max, nSample)
 
 batch_size = 8
 
@@ -70,23 +71,17 @@ if args.v:
 
 n = int(nSample//neach)
 
-for seed in range(n):
+for seed in range(6,8):
     p = params[seed*neach:(seed+1)*neach]
     _d1, _d2 = generate_mock_cw_signals(label=label, params=p, num_cpus=num_cpus, obsTime=obsTime, Tsft=Tsft, homedir=homedir+'tmp/')
     signal_dataset = crop_signal_img(_d1, _d2, freq_size=freq_size, threshold = 50)
     
-    if f0min == f0max:
-        if args.v:
-            filename = "data/validation/{}Hz_{}_traindata_n{}_seed{}.npz".format(f0min, version, neach, seed)
-        else:
-            filename = "data/{0}Hz/{0}Hz_{1}_traindata_n{2}_seed{3}.npz".format(f0min, version, neach, seed)
+    if args.v:
+        filename = "data/validation/{}Hz_{}_traindata_n{}_seed{}.npz".format(f0, version, neach, seed)
     else:
-        if args.v:
-            filename = "data/validation/{}-{}Hz_{}_traindata_n{}_seed{}.npz".format(f0min, f0max, version, neach, seed)
-        else:
-            filename = "data/{0}-{1}Hz/{0}-{1}Hz_{2}_traindata_n{3}_seed{4}.npz".format(f0min, f0max, version, neach, seed)
-
-    np.savez(filename, **signal_dataset, f0min=f0min, f0max=f0max, params=p)
+        filename = "data/{0}Hz/{0}Hz_{1}_traindata_n{2}_seed{3}.npz".format(f0, version, neach, seed)
+    
+    np.savez(filename, **signal_dataset, f0=f0, params=p)
     print("Saved to {}".format(filename)) 
     
 print("Time used ={} s".format(time.time()-t0))

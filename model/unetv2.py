@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
 
-
 """
 Modified from https://github.com/LeeJunHyun/Image_Segmentation.git
 """
@@ -99,51 +98,6 @@ class up_conv(nn.Module):
         x = self.up(x)
         return x
 
-# class Attention_block(nn.Module):
-#     """Attention mechanism to weight encoder features based on decoder input.
-    
-#     Args:
-#         F_g (int): Number of channels in the gating signal (decoder).
-#         F_l (int): Number of channels in the encoder feature map.
-#         F_int (int): Number of intermediate channels for attention computation.
-#     """
-#     def __init__(self, F_g, F_l, F_int):
-#         super(Attention_block, self).__init__()
-#         self.W_g = nn.Sequential(
-#             nn.Conv2d(F_g, F_int, kernel_size=1, stride=1, padding=0, bias=True),
-#             nn.BatchNorm2d(F_int)
-#         )
-        
-#         self.W_x = nn.Sequential(
-#             nn.Conv2d(F_l, F_int, kernel_size=1, stride=1, padding=0, bias=True),
-#             nn.BatchNorm2d(F_int)
-#         )
-
-#         self.psi = nn.Sequential(
-#             nn.Conv2d(F_int, 1, kernel_size=1, stride=1, padding=0, bias=True),
-#             nn.BatchNorm2d(1),
-#             nn.Sigmoid()
-#         )
-        
-#         self.relu = nn.LeakyReLU(inplace=True)
-#         self.scale = nn.Parameter(torch.ones(1))
-
-#     def forward(self, g, x):
-#         """Forward pass to compute attention-weighted encoder features.
-        
-#         Args:
-#             g (torch.Tensor): Gating signal from decoder [batch, F_g, height, width].
-#             x (torch.Tensor): Encoder feature map [batch, F_l, height, width].
-        
-#         Returns:
-#             torch.Tensor: Attention-weighted encoder features [batch, F_l, height, width].
-#         """
-#         g1 = self.W_g(g)
-#         x1 = self.W_x(x)
-#         psi = self.relu(g1 + x1)
-#         psi = self.psi(psi)
-#         return x * psi * self.scale # Apply attention weights to encoder features
-    
 class Attention_block(nn.Module):
     """Attention mechanism to weight encoder features based on decoder input.
     
@@ -169,7 +123,7 @@ class Attention_block(nn.Module):
             nn.BatchNorm2d(1),
             nn.Sigmoid()
         )
-        self.scale = nn.Parameter(torch.ones(1))
+        
         self.relu = nn.LeakyReLU(inplace=True)
 
     def forward(self, g, x):
@@ -186,8 +140,8 @@ class Attention_block(nn.Module):
         x1 = self.W_x(x)
         psi = self.relu(g1 + x1)
         psi = self.psi(psi)
-        return x * psi * self.scale
-    
+        return x * psi 
+
 class Attention_UNet(nn.Module):
     """Attention U-Net for image segmentation with encoder and decoder in nn.ModuleList.
     
@@ -203,7 +157,6 @@ class Attention_UNet(nn.Module):
         self.Upsample = nn.Upsample(scale_factor=2)
 
         # Encoder packed into nn.ModuleList
-        # Each tuple contains (conv_block, Maxpool) for each encoder level
         self.encoder = nn.ModuleList([
             conv_block(in_channels=in_channels, out_channels=latent_channels),
             conv_block(in_channels=latent_channels, out_channels=latent_channels*2),
@@ -216,18 +169,8 @@ class Attention_UNet(nn.Module):
             conv_block(in_channels=latent_channels*8, out_channels=latent_channels*16),
             nn.Dropout2d(p=dropout_prob) if dropout_prob > 0 else nn.Identity()
         )
-        # self.bottleneck = nn.Sequential(
-        #     nn.Conv2d(latent_channels*8, latent_channels*16, kernel_size=3, stride=1, padding=2, dilation=2, bias=True),
-        #     nn.BatchNorm2d(latent_channels*16),
-        #     nn.LeakyReLU(inplace=True),
-        #     nn.Conv2d(latent_channels*16, latent_channels*16, kernel_size=3, stride=1, padding=2, dilation=2, bias=True),
-        #     nn.BatchNorm2d(latent_channels*16),
-        #     nn.LeakyReLU(inplace=True),
-        #     nn.Dropout2d(p=dropout_prob)
-        # )
         
         # Decoder packed into nn.ModuleList
-        # Each tuple contains (up_conv, Attention_block, conv_block, in_channels for concatenation)
         self.decoder = nn.ModuleList([
             conv_block(in_channels=latent_channels*16, out_channels=latent_channels*8),
             conv_block(in_channels=latent_channels*8, out_channels=latent_channels*4),
@@ -265,7 +208,7 @@ class Attention_UNet(nn.Module):
         Returns:
             torch.Tensor: Segmentation output [batch, out_channels, height, width].
         """
-        # Encoder path using nn.ModuleList
+        # Encoder 
         skip_connections = []
         for i, conv in enumerate(self.encoder):
             x = conv(x)
@@ -275,7 +218,7 @@ class Attention_UNet(nn.Module):
         # Bottleneck layer
         x = self.bottleneck(x)
 
-        # Decoder path using nn.ModuleList
+        # Decoder 
         for i, (up, att, conv) in enumerate(zip(self.upsample_layer, self.attention_layer, self.decoder)):
             x = up(x)  # Upsample
             # Apply attention to encoder skip connection
@@ -284,6 +227,5 @@ class Attention_UNet(nn.Module):
             x = torch.cat((ag_x, x), dim=1)
             x = conv(x)  # Apply conv block
 
-        # Final 1x1 convolution for output
         x = self.output_layer(x)
         return x

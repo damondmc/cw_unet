@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=sky
-#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/sky.out
-#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/sky.err
+#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/sky20Hz.out
+#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/sky20Hz.err
 #SBATCH --time=06:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1

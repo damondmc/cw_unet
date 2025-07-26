@@ -6,8 +6,7 @@ import json
 import argparse
 
 parser = argparse.ArgumentParser(description="Generate mock CW signal dataset.")
-parser.add_argument('--f0min', type=int, default=500, help='Base minimum frequency (default: 500)')
-parser.add_argument('--f0max', type=int, default=500, help='Base maximum frequency (default: 500)')
+parser.add_argument('--f0', type=int, default=500, help='Base frequency (default: 500), set 0 to set 20-1000Hz')
 parser.add_argument('--det', type=str, default='H1L1', help='Detector name (default: H1L1)')
 parser.add_argument('--Tsft', type=int, default=7200, help='SFT duration in seconds (default: 7200)')
 parser.add_argument('--obsTime', type=int, default=921600, help='Observation time in seconds (default: 921600)')
@@ -22,8 +21,7 @@ print("Start")
 np.random.seed(23) 
 
 # Use arguments from argparse
-f0min = args.f0min
-f0max = args.f0max
+f0 = args.f0
 det = args.det
 Tsft = args.Tsft
 obsTime = args.obsTime
@@ -48,25 +46,25 @@ print(f"Frequency band size: {freq_size}")
 print(f"Spectrogram size: {size}")
 
 
-label = 'skymap{}{}4cD10NT{}s'.format(f0min, f0max, Tsft)
+label = 'skymap{}4cD10NT{}s'.format(f0, Tsft)
 version = '{}_{}x{}_{}s_4c'.format(det, size[0], size[1], Tsft)
 
 # Generate parameters based on the chosen method
-params = genSampleParam_skymap(f0min, f0max, f1min, f1max, nSky, nSample)
+if f0 == 0:
+    params = genSampleParam_skymap(20, 1000, f1min, f1max, nSky, nSample)
+else:
+    params = genSampleParam_skymap(f0, f0, f1min, f1max, nSky, nSample)
 
 batch_size = 8
 n = int(nSample*nSky//neach)
 
-for seed in range(284, n):
+for seed in range(217, 400):
     p = params[seed*neach:(seed+1)*neach]
     _d1, _d2 = generate_mock_cw_signals(label=label, params=p, num_cpus=num_cpus, obsTime=obsTime, Tsft=Tsft, homedir=homedir+'tmp/')
     signal_dataset = crop_signal_img(_d1, _d2, freq_size=freq_size, threshold = 50)
     
-    if f0min == f0max:
-        filename = "data/validation/skymap_{}Hz_{}_traindata_n{}_seed{}.npz".format(f0min, version, neach, seed)
-    else:
-        filename = "data/validation/skymap_{}-{}Hz_{}_traindata_n{}_seed{}.npz".format(f0min, f0max, version, neach, seed)
-    np.savez(filename, **signal_dataset, f0min=f0min, f0max=f0max, params=p)
+    filename = "data/validation/skymap_{}Hz_{}_traindata_n{}_seed{}.npz".format(f0, version, neach, seed) 
+    np.savez(filename, **signal_dataset, f0=f0, params=p)
     print("Saved to {}".format(filename)) 
     
 print("Time used ={} s".format(time.time()-t0))

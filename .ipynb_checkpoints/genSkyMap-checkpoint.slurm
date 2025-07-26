@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=gen_four
-#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_sm_data.out
-#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_sm_data.err
+#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_1000sky.out
+#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_1000sky.err
 #SBATCH --time=1-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -14,4 +14,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python makeSkyMapData.py --num_cpus 20 --f0min 500 --f0max 500 --Tsft 14400 --freq_size 512 --obsTime 921600
+python makeSkyMapData.py --num_cpus 20 --f0 1000 --Tsft 14400 --freq_size 512 --obsTime 921600

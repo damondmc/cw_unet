@@ -1,12 +1,14 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet_leaky_norm_tanho import UNet
+from model.unetv2 import Attention_UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
 import argparse
 from multiprocessing import Pool
+
+# s9n9 need more memory
 
 parser = argparse.ArgumentParser(description="Generate mock CW signal dataset.")
 parser.add_argument('--f0', type=int, default=500, help='Base frequency (default: 500)')
@@ -15,13 +17,16 @@ parser.add_argument('--Tsft', type=int, default=7200, help='SFT duration in seco
 parser.add_argument('--obsTime', type=int, default=921600, help='Observation time in seconds (default: 921600)')
 parser.add_argument('--freq_size', type=int, default=256, help='Frequency band size (default: 256)')
 parser.add_argument('--num_cpus', type=int, default=16, help='Number of CPUs to use (default: 20)')
-parser.add_argument('--n_step', type=int, default=3, help='Steps for each dataset to be trained.')
 parser.add_argument('--n_data', type=int, default=3, help='Number of dataset to be used for each loop.')
+parser.add_argument('--n_noise', type=int, default=1, help='Number of noise dataset to be used for each loop.')
 parser.add_argument('--alpha', type=float, default=1, help='Weight for signal MSE in loss function.')
 parser.add_argument('--beta', type=float, default=1, help='Weight for noise MSE in loss function.')
+parser.add_argument('--latent_channels', type=int, default=16, help='Number of latent_channels for our model.')
+parser.add_argument('--batch_size', type=int, default=8, help='Batch size.')
+parser.add_argument('--lr', type=float, default=1e-4, help='Learning rate.')
 args = parser.parse_args()
 
-def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus):
+def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus, base=0):
     """
     Simulate noise in parallel using a process pool.
     
@@ -38,7 +43,7 @@ def simulate_noise_batch(Sn, Tsft, size, ns, epoch, num_cpus):
     """
     with Pool(processes=num_cpus) as pool:
         _noise = pool.starmap(simNoise,
-                            [(Sn, Tsft, size, 2, False, epoch*ns + i)
+                            [(Sn, Tsft, size, 2, False, base+epoch*ns + i)
                              for i in range(ns)])
     
     noise = np.empty((ns,) + size + (4,))
@@ -66,10 +71,12 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 1000
+num_epochs = 800
+noise_train = 1000 * args.n_noise
+print("Number of pure nosie = {}".format(noise_train))
 
 # Set random seed for reproducibility
-np.random.seed(100000*num_epochs)
+np.random.seed(0)
 torch.manual_seed(0)
 
 # Use arguments from argparse
@@ -81,21 +88,22 @@ freq_size = args.freq_size
 num_cpus = args.num_cpus
 alpha = args.alpha
 beta = args.beta
+latent_channels = args.latent_channels
+batch_size = args.batch_size
+lr = args.lr
 
-homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/'
-tmpdir = homedir + 'tmp/'
+homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f'
 size = (freq_size, obsTime // Tsft)
 n_data = args.n_data  # modify the load data method in the loop to allow n > 1
-n_step = args.n_step
 
-threshold = 50
 # Initial noise levels and total possible noise levels 
-max_train_levels = [20]
-max_val_levels = [12, 15, 18, 20, 22, 35]
+max_train_levels = [21]
+max_val_levels = [18, 19, 19.5, 20, 35, 35.6]
 
-label = 'fast_UNET_weight_alpha{}beta{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_step{}_ndata{}_th{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data, n_step, n_data*1000, threshold)
+label = 'v2_a{}b{}_{}Hz_D{}-{}_T{}_Tsft{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), Tsft, n_data*1000, noise_train, latent_channels, batch_size, lr)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
+print(f"Batch size: {batch_size}")
 print(f"Nominal frequency: {f0}")
 print(f"Detector: {det}")
 print(f"SFT duration (Tsft): {Tsft} seconds")
@@ -103,22 +111,21 @@ print(f"Observation time (obsTime): {obsTime} seconds")
 print(f"Home directory: {homedir}")
 print(f"Frequency band size: {freq_size}")
 print(f"Spectrogram size: {size}")
-#print(f"Number of training samples per noise level: {nTrain}")
 print(f"Data generation label: {label}")
 print(f"Save file label: {version}")
 print(f"Alpha (signal): {alpha}")
 print(f"Beta (noise): {beta}")
+print(f"Learning rate: {lr}")
 
-# Initialize dictionaries to store `pdet` by noise level
-train_pdet = {noise_level: [] for noise_level in max_train_levels}
-val_pdet = {noise_level: [] for noise_level in max_val_levels}
-val_pdet2 = {noise_level: [] for noise_level in max_val_levels}
-batch_size = 8
+# Initialize dictionaries to store pdet by noise level and method
+methods = ['mean', 'mean_sq', 'kl_one', 'kl_random']
+train_pdet = {method: {noise_level: [] for noise_level in max_train_levels} for method in methods}
+val_pdet = {method: {noise_level: [] for noise_level in max_val_levels} for method in methods}
 
-filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_seed0.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
+
+filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
 targets = np.load(filename, allow_pickle=True)['clean_image']
-masks = np.load(filename, allow_pickle=True)['signal_mask']
-
+masks = new_mask(normalize(targets), k=1)
 data = []
 mask_data = []
 target_data = []
@@ -140,8 +147,7 @@ target_data = np.concatenate(target_data)
 label_data = np.concatenate(label_data)
 data = load_signal_datasetv2(data, target_data, mask_data, label_data)
     
-    
-noise = np.empty((500,) + size + (4,))
+noise = np.empty((1000,) + size + (4,))
 for i in range(noise.shape[0]):
     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
 noise = normalize(noise)
@@ -149,24 +155,15 @@ noise_data = load_noise_dataset(noise)
 
 val_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
-
-filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/validation/{0}Hz_H1L1_D0-{4}_{1}x{2}_{3}s_4c_traindata_n{5}_norm.npz'.format(f0, size[0], size[1], Tsft, 35, 400)
-print("Using {}".format(filename))
-data = np.load(filename, allow_pickle=True)
-signal_dataset = load_signal_dataset(data, max_val_levels)    
-
-val_loader2 = make_data_loader([signal_dataset, noise_data], batch_size=batch_size)
-
-
 # load clean signal data 
 target_datasets = []
 mask_datasets = []
 # Load n datasets based on different seeds
 for i in range(n_data):  # Iterate over n datasets
-    filename = '/scratch/kriles_root/kriles0/damoncht/unet_f/data/{0}Hz/{0}Hz_H1L1_D0-{4}_{2}x{3}_{5}s_4c_traindata_n1000_seed{1}.npz'.format(f0, i, size[0], size[1], 20, Tsft)
+    filename = '{6}/data/{0}Hz/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n1000_seed{5}.npz'.format(f0, det, size[0], size[1], Tsft, i, homedir)
     print("Using {}".format(filename))
     targets = np.load(filename, allow_pickle=True)['clean_image']
-    masks = np.load(filename, allow_pickle=True)['signal_mask']
+    masks = new_mask(normalize(targets), k=1)
     target_datasets.append(targets)
     mask_datasets.append(masks)
     
@@ -176,23 +173,24 @@ mask_datasets = np.concatenate(mask_datasets)
 ns = target_datasets.shape[0]
 
 # Initialize the model
-size_filter_in = 16
 dropout_prob = 0.0 # 0.1 
-# 16, 0.3 version 1
-model = UNet(input_channels=4, output_channels=4, size_filter_in=size_filter_in, dropout_prob=dropout_prob).to(device)
+model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 
 # Initialize the optimizer
-lr=1e-4
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=1000)
+scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=100)
 
 # Initialize variables to store the top models and their losses
 best_val_loss = float('inf')
 best_val_model = None
 
-best_pdet = 0.0
-best_pdet_model = None
+#best_pdet = 0.0
+#best_pdet_model = None
+
+best_pdet = {method: 0.0 for method in methods}
+best_pdet_model = {method: None for method in methods}
+
 
 train_losses = []
 train_mse_signal = []
@@ -205,39 +203,26 @@ val_mse_noise = []
 print(model)
 
 for epoch in tqdm(range(num_epochs)):   
-    if epoch % n_step == 0:
-        # generate gaussian noise
-#         with Pool(processes=num_cpus) as pool:
-#             _noise = pool.starmap(simNoise, 
-#                                   [(max_train_levels[0], Tsft, size, 2, False, epoch*ns + i) 
-#                                    for i in range(ns)])
-#         noise = np.empty((ns,) + size + (4,))
-#         for i, _n in enumerate(_noise):
-#             noise[i] = _n
-        # generate noise 
-        noise = simulate_noise_batch(max_train_levels[0], Tsft, size, ns, epoch, num_cpus)
+    # generate noise 
+    noise = simulate_noise_batch(max_train_levels[0], Tsft, size, ns, epoch, num_cpus, 1)
 
-        # add noise into clean signal 
-        data = normalize(target_datasets + noise)
-        label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
-        data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
-        
-        # generate pure noise training data        
-        noise = simulate_noise_batch(1, Tsft, size, 500, num_epochs*ns+epoch, num_cpus)
-#         noise = np.empty((500,) + size + (4,))
-#         for i in range(500):
-#             noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
-        noise = normalize(noise)
-        noise_data = load_noise_dataset(noise)
+    # add noise into clean signal 
+    data = normalize(target_datasets + noise)
+    label_data = [max_train_levels[0]] * data.shape[0]  # Extend labels
+    data = load_signal_datasetv2(data, normalize(target_datasets), mask_datasets, label_data)
 
-        #train_loader = make_data_loader([data], batch_size=batch_size)
-        train_loader = make_data_loader([data, noise_data], batch_size=batch_size)
+    # generate pure noise training data       # original 500 noise 
+    noise = simulate_noise_batch(1, Tsft, size, noise_train, epoch, num_cpus, 1+num_epochs*ns)
+    noise = normalize(noise)
+    noise_data = load_noise_dataset(noise)
+
+    train_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
     # Training phase
     running_train_loss = 0.0
     running_train_mse_signal = 0.0
     running_train_mse_noise = 0.0
-    train_det = []
+    train_det = {method: [] for method in methods}
     train_label = []
     
     model.train()
@@ -259,9 +244,10 @@ for epoch in tqdm(range(num_epochs)):
         running_train_mse_signal += mse_signal.item()
         running_train_mse_noise += mse_noise.item()
         
-        # Count signals and those passing the threshold
-        detection_stats = compute_detection_statistic(denoised.detach())
-        train_det.append(detection_stats)
+        # Compute detection statistics for all methods
+        for method in methods:
+            detection_stats = compute_detection_statistic(denoised.detach(), method=method)
+            train_det[method].append(detection_stats)
         train_label.append(labels)
 
     # Calculate average training loss
@@ -271,7 +257,6 @@ for epoch in tqdm(range(num_epochs)):
     train_losses.append(train_loss)
     train_mse_signal.append(train_mse_signal_epoch)
     train_mse_noise.append(train_mse_noise_epoch)
-
     
     # Validation phase
     running_val_loss = 0.0
@@ -279,7 +264,7 @@ for epoch in tqdm(range(num_epochs)):
     running_val_mse_noise = 0.0
     model.eval()
     with torch.no_grad():
-        val_det = []
+        val_det = {method: [] for method in methods}
         val_label = []
         
         for inputs, targets, mask, labels in val_loader: 
@@ -293,8 +278,10 @@ for epoch in tqdm(range(num_epochs)):
             running_val_mse_signal += mse_signal.item()
             running_val_mse_noise += mse_noise.item()
             
-            detection_stats = compute_detection_statistic(denoised.detach())
-            val_det.append(detection_stats)
+            # Compute detection statistics for all methods
+            for method in methods:
+                detection_stats = compute_detection_statistic(denoised.detach(), method=method)
+                val_det[method].append(detection_stats)
             val_label.append(labels)
             
     val_loss = running_val_loss / len(val_loader)
@@ -304,116 +291,86 @@ for epoch in tqdm(range(num_epochs)):
     val_mse_signal.append(val_mse_signal_epoch)
     val_mse_noise.append(val_mse_noise_epoch)
     
-    model.eval()
-    with torch.no_grad():
-        val_det2 = []
-        val_label2 = []
+    # Compute pdet for all methods
+    train_det = {method: np.concatenate(train_det[method], axis=0) for method in methods}
+    train_label = np.concatenate(train_label, axis=0)
+    val_det = {method: np.concatenate(val_det[method], axis=0) for method in methods}
+    val_label = np.concatenate(val_label, axis=0)
+    
+    # Compute pdet for each method
+    for method in methods:
+        noise_det = train_det[method][train_label == np.float('inf')]
+        pfa = compute_threshold_from_pfa(noise_det, pfa=0.0071)
         
-        for inputs, targets, mask, labels in val_loader2: 
-            inputs, targets, mask = inputs.to(device), targets.to(device), mask.to(device)
+        # Training pdet by noise level
+        for noise_level in train_pdet[method].keys():
+            signal_det = train_det[method][train_label == float(noise_level)]
+            if signal_det.size != 0:
+                pdet = (signal_det > pfa).sum() / signal_det.size 
+                train_pdet[method][noise_level].append(pdet)
+            else:
+                train_pdet[method][noise_level].append(np.nan)
+        
+        # Validation pdet by noise level
+        noise_det = val_det[method][val_label == np.float('inf')]
+        pfa = compute_threshold_from_pfa(noise_det, pfa=0.0071)
+        print(f'\nValidation for method {method}:')
+        print(f'pfa threshold = {pfa:.3e}')
+        for noise_level in val_pdet[method].keys():
+            signal_det = val_det[method][val_label == float(noise_level)]
+            if signal_det.size != 0:
+                pdet = (signal_det > pfa).sum() / signal_det.size 
+                val_pdet[method][noise_level].append(pdet)
+                print(f"D={noise_level}, pdet={pdet*100:.2f}%")
+            else:
+                val_pdet[method][noise_level].append(np.nan)
+        
+        # Track best pdet model for each method
+        if val_pdet[method][max_val_levels[-1]][-1] > best_pdet[method]:
+            best_pdet[method] = val_pdet[method][max_val_levels[-1]][-1]
+            best_pdet_model[method] = model.state_dict()
+            print(f'Replace best pdet model for {method} at epoch {epoch}')
 
-            denoised = model(inputs)
-            detection_stats = compute_detection_statistic(denoised.detach())
-            val_det2.append(detection_stats)
-            val_label2.append(labels)
-            
+    scheduler.step(val_pdet['mean'][max_val_levels[-1]][-1])
     
-    # Compute Pdet as the fraction of signals passing the threshold
-    train_det = np.concatenate(train_det, axis=0)
-    train_label = np.concatenate(train_label, axis=0)    
-    
-    noise_det = train_det[train_label==np.float('inf')]
-    pfa = compute_threshold_from_pfa(noise_det)
-    
-    # Compute training pdet by noise level
-    for noise_level in train_pdet.keys():
-        signal_det = train_det[train_label == float(noise_level)]
-        if signal_det.size != 0:
-            pdet = (signal_det > pfa).sum() / signal_det.size 
-            train_pdet[noise_level].append(pdet)
-            print("D={}, pdet={}%".format(noise_level, pdet*100))
-        else:
-            pdet = np.nan
-            train_pdet[noise_level].append(pdet)
-        
-    # Compute validation pdet by noise level
-    val_det = np.concatenate(val_det, axis=0)
-    val_label = np.concatenate(val_label, axis=0)    
-    
-    noise_det = val_det[val_label==np.float('inf')]
-    pfa = compute_threshold_from_pfa(noise_det)
-    
-    # Compute valing pdet by noise level
-    print('Validation:')
-    print('pfa th = ', pfa)
-    for noise_level in val_pdet.keys():
-        signal_det = val_det[val_label == float(noise_level)]
-        if signal_det.size != 0:
-            pdet = (signal_det > pfa).sum() / signal_det.size 
-            val_pdet[noise_level].append(pdet)
-            print("D={}, pdet={}%".format(noise_level, pdet*100))
-        else:
-            pdet = np.nan
-            val_pdet[noise_level].append(pdet) 
-            
-            
-    # Compute validation pdet by noise level
-    val_det2 = np.concatenate(val_det2, axis=0)
-    val_label2 = np.concatenate(val_label2, axis=0)    
-    
-    noise_det = val_det2[val_label2==np.float('inf')]
-    pfa = compute_threshold_from_pfa(noise_det)
-    
-    # Compute valing pdet by noise level
-    print('Validation pyFstat:')
-    print('pfa th = ', pfa)
-    for noise_level in val_pdet2.keys():
-        signal_det = val_det2[val_label2 == float(noise_level)]
-        if signal_det.size != 0:
-            pdet = (signal_det > pfa).sum() / signal_det.size 
-            val_pdet2[noise_level].append(pdet)
-            print("D={}, pdet={}%".format(noise_level, pdet*100))
-        else:
-            pdet = np.nan
-            val_pdet2[noise_level].append(pdet) 
-            
-    #scheduler.step(val_loss)
-    scheduler.step(val_pdet[max_val_levels[-1]][-1])
-    # Print epoch loss every 5 epochs
+    # Print epoch loss every 3 epochs
     if epoch % 3 == 0:
-        print(f"Epoch {epoch + 1}/{num_epochs}, Training Loss: {train_loss:.3e}, Validation Loss: {val_loss:.3e}.")
+        print(f"\nEpoch {epoch + 1}/{num_epochs}, Training Loss: {train_loss:.3e}, Validation Loss: {val_loss:.3e}")
+        print("Validation pdet summary:")
+        for method in methods:
+            print(f"Method {method}:")
+            for noise_level in val_pdet[method].keys():
+                pdet = val_pdet[method][noise_level][-1]
+                print(f"  D={noise_level}, pdet={pdet*100:.2f}%" if not np.isnan(pdet) else f"  D={noise_level}, pdet=NaN")
 
-    # Track the best model with the lowest training loss
+    # Track the best model with the lowest validation loss
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         best_val_model = model.state_dict()
-        print('Replace best val model at epoch {0}'.format(epoch)) 
-        
-    if pdet > best_pdet:
-        best_pdet = pdet
-        best_pdet_model = model.state_dict()
-        print('Replace best pdet model at epoch {0}'.format(epoch))
+        print(f'Replace best val model at epoch {epoch}')
        
     # Print the learning rate
     current_lr = optimizer.param_groups[0]['lr']
-    print("the learning rate:", current_lr)
-    print("Time used = {}".format(time.time()-t0))
-    if current_lr < 1e-4 / 2 **3:
+    print(f"Learning rate: {current_lr:.3e}")
+    print(f"Time used = {time.time()-t0:.2f} seconds")
+    
+    if current_lr < lr / 2**3:
         break
 
+# Convert lists to arrays
 train_losses = np.array(train_losses)
 train_mse_signal = np.array(train_mse_signal)
 train_mse_noise = np.array(train_mse_noise)
-
 val_losses = np.array(val_losses)
 val_mse_signal = np.array(val_mse_signal)
 val_mse_noise = np.array(val_mse_noise)
 
-# Save the top validation models and the best training model
-torch.save(best_val_model, homedir+"trained_model/{0}Hz/best_val_model_{1}.pth".format(f0, version))
-torch.save(best_pdet_model, homedir+"trained_model/{0}Hz/best_pdet_model_{1}.pth".format(f0, version))
+# Save the top validation models and the best pdet models for each method
+torch.save(best_val_model, f"{homedir}/trained_model/{f0}Hz/best_val_model_{version}.pth")
+for method in methods:
+    torch.save(best_pdet_model[method], f"{homedir}/trained_model/{f0}Hz/best_pdet_model_{method}_{version}.pth")
 
-# Save all losses in a single file
+# Save all losses and pdet values
 losses = {
     "train_losses": train_losses,
     "train_mse_signal": train_mse_signal,
@@ -421,11 +378,14 @@ losses = {
     "val_losses": val_losses,
     "val_mse_signal": val_mse_signal,
     "val_mse_noise": val_mse_noise,
-    "top_val_losses": best_val_loss,
+    "top_val_loss": best_val_loss,
     "train_pdet": train_pdet,
     "val_pdet": val_pdet,
     "top_val_pdet": best_pdet
 }
-np.save(homedir+'trained_model/{0}Hz/losses_{1}.npy'.format(f0, version), losses)
+np.save(f'{homedir}/trained_model/{f0}Hz/losses_{version}.npy', losses)
 
 print("Done.")
+    
+    
+    

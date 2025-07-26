@@ -14,41 +14,67 @@ from multiprocessing import Pool, cpu_count
 # Detect if CUDA is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def compute_detection_statistic(images, ref_distribution=None):
+# Define compute_kl_divergence if not already defined
+def compute_kl_divergence(p, q):
     """
-    Compute the KL divergence detection statistic for each image.
+    Compute KL divergence between two 2D distributions (P and Q).
 
     Parameters:
-        images (torch.Tensor): Input images, shape (batch_size, C, H, W).
-        ref_distribution (np.ndarray): Reference distribution Q for KL divergence, 
-                                        shape (H, W).
+        p (np.ndarray): Input distribution (image), shape (H, W).
+        q (np.ndarray): Reference distribution, shape (H, W).
+        epsilon (float): Small value to avoid log(0).
 
     Returns:
-        np.ndarray: KL divergence statistics for each image.
+        float: KL divergence value.
     """
-    images_np = images.cpu().numpy()
-    detection_stats = np.mean(np.abs(images_np.transpose(0, 2, 3, 1)), axis=(1, 2, 3))
-    return detection_stats
+    # Flatten distributions
+    p_flat = p.flatten()
+    q_flat = q.flatten()
+    
+    # Normalize to ensure valid probability distributions
+    p_flat = p_flat / np.sum(p_flat) 
+    q_flat = q_flat / np.sum(q_flat)
+    
+    # Compute KL divergence using scipy.stats.entropy
+    return entropy(p_flat, q_flat)
+    
+def compute_detection_statistic(images, method= 'mean'):
     """
-    if ref_distribution is None:
-        raise ValueError("A reference distribution must be provided.")
+    Compute detection statistic for each image using specified method.
 
-    # Move tensor to numpy
-    images_np = images.cpu().numpy()
+    Args:
+        images (torch.Tensor): Input images, shape (batch_size, C, H, W).
+        method (str): Method to compute statistic. Options: 'mean', 'mean_sq', 
+                     'kl_one', 'kl_random'. Defaults to 'mean'.
 
-    # Initialize an array to store KL divergence for each image
-    kl_div_stats = np.zeros(images_np.shape[0])
-    #print(images_np.shape)
-    for i in range(images_np.shape[0]):
-        # Average over channels to get a single 2D array for each image
-        image = np.mean(images_np[i], axis=0)
-        #print(image.shape, ref_distribution.shape)
-        # Compute KL divergence
-        kl_div_stats[i] = compute_kl_divergence(image, ref_distribution)
+    Returns:
+        np.ndarray: Detection statistics for each image, shape (batch_size,).
 
-    return kl_div_stats
+    Raises:
+        ValueError: If method is invalid or input tensor has incorrect shape.
+        TypeError: If input is not a torch.Tensor.
     """
+    valid_methods = {'mean', 'mean_sq', 'kl_one', 'kl_random'}
+    if method not in valid_methods:
+        raise ValueError(f"Method must be one of {valid_methods}, got {method}")
 
+    images_np = np.abs(images.cpu().numpy())
+                          
+    if method == 'mean':
+        return np.mean(images_np.transpose(0, 2, 3, 1), axis=(1, 2, 3))
+    
+    elif method == 'mean_sq':
+        return np.mean(np.square(images_np.transpose(0, 2, 3, 1)), axis=(1, 2, 3))
+    
+    elif method == 'kl_one':
+        ref_dist = np.ones_like(images_np[0])
+        return np.array([compute_kl_divergence(img, ref_dist) for img in images_np])
+    
+    elif method == 'kl_random':
+        # Generate uniform random distribution in [-1, 1]
+        ref_dist = np.random.uniform(-1, 1, images_np[0].shape)
+        return np.array([compute_kl_divergence(img, ref_dist) for img in images_np])
+    
 def compute_threshold_from_pfa(noise_det, pfa=0.01):
     """
     Compute the detection threshold based on the desired false alarm rate (Pfa)
@@ -65,35 +91,6 @@ def compute_threshold_from_pfa(noise_det, pfa=0.01):
     # Compute the threshold corresponding to Pfa (percentile)
     threshold = np.percentile(noise_det, 100 * (1 - pfa))
     return threshold
-
-
-def compute_kl_divergence(image: np.ndarray, Q: np.ndarray) -> float:
-    # ref_distribution = np.ones(size)
-    """
-    Compute the KL divergence between an image and a reference distribution Q.
-
-    Parameters:
-        image (np.ndarray): The input image array.
-        Q (np.ndarray): The reference distribution array.
-        
-    Returns:
-        float: The computed KL divergence.
-    """
-    # Normalize the image to create a probability distribution P
-    P = image / np.sum(image)
-    
-    # Normalize Q to ensure it is a valid probability distribution
-    Q = Q / np.sum(Q)
-    
-    # Ensure both distributions are of the same shape
-    if P.shape != Q.shape:
-        raise ValueError("Input image and reference distribution Q must have the same shape.")
-    
-    # Compute the KL divergence
-    kl_divergence = entropy(P.ravel(), Q.ravel())
-    
-    return kl_divergence
-
 
 def load_signal_dataset_val(data, noise_levels_to_sample):
     """
