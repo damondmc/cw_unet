@@ -66,7 +66,7 @@ num_noise_realizations = 200
 if f0 == 20:
     train_level = 32
 if f0 == 500:
-    train_level = 21
+    train_level = 22
 if f0 == 1000:
     train_level = 19
 if f0 == 0:
@@ -78,10 +78,7 @@ output_file = f"sky2000pts_depth_at_p90_{f0}Hz.npz"
 
 # Initialize model
 model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=64, dropout_prob=0).to(device)
-if f0 == 500:   
-    best_val_model = torch.load(f"./trained_model/{f0}Hz/best_pdet_model_mean_sq_{version}_epoch400.pth", weights_only=False)
-else:
-    best_val_model = torch.load(f"./trained_model/{f0}Hz/best_pdet_model_mean_sq_{version}.pth", weights_only=False)
+best_val_model = torch.load(f"./trained_model/{f0}Hz/best_pdet_model_mean_sq_{version}.pth", weights_only=False)
     
 model.load_state_dict(best_val_model)
 model.eval()
