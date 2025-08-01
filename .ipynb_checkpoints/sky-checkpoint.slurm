@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=sky
-#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/sky.out
-#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/sky.err
-#SBATCH --time=06:00:00
+#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/sky500Hz.out
+#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/sky500Hz.err
+#SBATCH --time=12:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
@@ -15,4 +15,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python -u skymap.py 
+python -u skymap.py --f0 500

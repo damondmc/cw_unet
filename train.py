@@ -8,9 +8,7 @@ import time
 import argparse
 from multiprocessing import Pool
 
-# s9n9 need more memory
-
-parser = argparse.ArgumentParser(description="Generate mock CW signal dataset.")
+parser = argparse.ArgumentParser(description="Training.")
 #parser.add_argument('--depth', type=float, default=20, help='Depth for the training data (default: 20)')
 parser.add_argument('--f0', type=int, default=500, help='Base frequency (default: 500)')
 parser.add_argument('--det', type=str, default='H1L1', help='Detector name (default: H1L1)')

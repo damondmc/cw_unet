@@ -6,6 +6,13 @@ import torch
 from utils import *
 from genData import *
 from model.unet import Attention_UNet
+import argparse
+from multiprocessing import Pool
+
+parser = argparse.ArgumentParser(description="Generate pdet skymap.")
+#parser.add_argument('--depth', type=float, default=20, help='Depth for the training data (default: 20)')
+parser.add_argument('--f0', type=int, default=500, help='Base frequency (default: 500)')
+args = parser.parse_args()
 
 def load_signal_datasetv(images, labels):
     """
@@ -37,19 +44,45 @@ torch.manual_seed(111)
 
 # Parameters
 det = 'H1L1'
-f0 = 500
+#f0 = 500
+args = parser.parse_args()
+f0 = args.f0
 size = (512, 64)
 Tsft = 14400
-max_train_levels = [16, 18, 20, 22]
-seeds = range(450)  # Seeds 1 to 6
+
+
+if f0 == 20:
+    max_train_levels = [16, 22, 27, 29, 32, 37, 40]
+
+if f0 == 500:
+    max_train_levels = [8, 12, 15, 18, 20, 22, 24]
+
+if f0 == 1000:
+    max_train_levels = [8, 12, 15, 18, 20, 22, 24]
+
+seeds = range(400)  # Seeds 1 to 6
 num_noise_realizations = 200
-version = version = 'H1L1_a1.0b1.0_500Hz_D21-21_T10_Tsft14400_ndata7000_noise7000_latent64_batch8_lr0.0001_512x64_MSELoss_dropout0'
+
+if f0 == 20:
+    train_level = 32
+if f0 == 500:
+    train_level = 21
+if f0 == 1000:
+    train_level = 19
+if f0 == 0:
+    train_level = 22
+    
+version = version = f'H1L1_a1.0b1.0_{f0}Hz_D{train_level}-{train_level}_T10_Tsft14400_ndata7000_noise7000_latent64_batch8_lr0.0001_512x64_MSELoss_dropout0'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-output_file = '450_depth_at_pdet_0.9.npz'
+output_file = f"sky2000pts_depth_at_p90_{f0}Hz.npz"
 
 # Initialize model
 model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=64, dropout_prob=0).to(device)
-best_val_model = torch.load(f"./trained_model/500Hz/best_val_model_{version}.pth", weights_only=False)
+if f0 == 500:   
+    best_val_model = torch.load(f"./trained_model/{f0}Hz/best_pdet_model_mean_sq_{version}_epoch400.pth", weights_only=False)
+else:
+    best_val_model = torch.load(f"./trained_model/{f0}Hz/best_pdet_model_mean_sq_{version}.pth", weights_only=False)
+    
 model.load_state_dict(best_val_model)
 model.eval()
 
