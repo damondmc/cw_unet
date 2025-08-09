@@ -2,7 +2,7 @@
 #SBATCH --job-name=gen_s
 #SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_0s.out
 #SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/gen_0s.err
-#SBATCH --time=2:00:00
+#SBATCH --time=2-05:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=20
