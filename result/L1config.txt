@@ -1,0 +1,6 @@
+IFOs=L1
+timeStampsFiles=timestamps.txt
+skyGridFile=skygrid.txt
+Tsft=14400
+outab=L1_antennapattern.txt
+outABCD=L1_antennamatrix.txt

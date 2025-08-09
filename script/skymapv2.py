@@ -142,7 +142,7 @@ for i, seed in tqdm(enumerate(seeds), total=400):
                     
     noisy_signals = np.empty((1000,) + size + (4,))
     for j in range(1000):
-        Sn = getDepthFromSNR(R2[i*1000 + j], Tobs=921600, snr=6)
+        Sn = getDepthFromSNR(R2[i*1000 + j], Tobs=921600, snr=10)
                     
         noise = simNoise(sqrtSn=Sn, Tsft=Tsft, size=size, ndet=2, norm=False)
         noisy_signals[j] = normalize(noise + targets[j])
