@@ -52,27 +52,20 @@ Tsft = 14400
 
 
 if f0 == 20:
-    max_train_levels = [16, 22, 27, 29, 32, 37, 40]
-
-if f0 == 500 or f0 == 0:
-    max_train_levels = [8, 12, 15, 18, 20, 22, 24]
-
-if f0 == 1000:
-    max_train_levels = [8, 12, 15, 18, 20, 22, 24]
-if f0 == 20:
     train_level = 32
+    rho = 5.9
 if f0 == 500:
     train_level = 22
+    rho = 9.5
 if f0 == 1000:
     train_level = 19
+    rho = 12
 if f0 == 0:
     train_level = 22
+    rho = 10
 
 
 version = f'H1L1_a1b1_{f0}Hz_D{train_level}-{train_level}_T10_f512xTsft14400_ndata7000_noise7000_latent64_batch8_lr0.0001_512x64_MSELoss_dropout0'
-
-if f0 == 1000 or f0 == 0:
-    version = f'H1L1_a1.0b1.0_{f0}Hz_D{train_level}-{train_level}_T10_Tsft14400_ndata7000_noise7000_latent64_batch8_lr0.0001_512x64_MSELoss_dropout0'
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -142,7 +135,7 @@ for i, seed in tqdm(enumerate(seeds), total=400):
                     
     noisy_signals = np.empty((1000,) + size + (4,))
     for j in range(1000):
-        Sn = getDepthFromSNR(R2[i*1000 + j], Tobs=921600, snr=10)
+        Sn = getDepthFromSNR(R2[i*1000 + j], Tobs=921600, snr=rho) # snr =6 for 20Hz, 15 for 1000Hz
                     
         noise = simNoise(sqrtSn=Sn, Tsft=Tsft, size=size, ndet=2, norm=False)
         noisy_signals[j] = normalize(noise + targets[j])
@@ -164,6 +157,6 @@ for i, seed in tqdm(enumerate(seeds), total=400):
                     
 detected = ( stat > x_pfa)
         
-np.savez(f'snr_skymap_{f0}Hz', stat=stat, x_pfa=x_pfa, detected = detected)
+np.savez(f'snr{rho}_skymap_{f0}Hz', stat=stat, x_pfa=x_pfa, detected = detected)
 
         

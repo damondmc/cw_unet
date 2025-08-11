@@ -2,5 +2,3 @@ data/
 tmp/
 log/
 trained_model/
-data_D35.npz
-data_D120.npz

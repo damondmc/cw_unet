@@ -70,7 +70,7 @@ def combined_loss(denoised, target, mask, alpha=1, beta=1):
 t0 = time.time()
 print("Start")
 
-num_epochs = 1000
+num_epochs = 700
 noise_train = 1000 * args.n_noise
 print("Number of pure nosie = {}".format(noise_train))
 
@@ -104,8 +104,8 @@ print(f"GPU Name: {gpu_name}")
 # Initial noise levels and total possible noise levels 
 
 if f0 == 20:
-    max_train_levels = [32]
-    max_val_levels = [8, 24, 29.3, 39]
+    max_train_levels = [34]
+    max_val_levels = [30, 34]
     if size[1] > 100:
         max_train_levels = [40]
         max_val_levels = [8, 24, 30, 35, 45]
@@ -200,6 +200,14 @@ ns = target_datasets.shape[0]
 # Initialize the model
 dropout_prob = 0.0 # 0.1 
 model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
+
+# checkpoint_path = f"{homedir}/trained_model/{f0}Hz/best_val_model_H1L1_a1b1_0Hz_D22-22_T10_f512xTsft14400_ndata10000_noise10000_latent128_batch8_lr0.0001_512x64_MSELoss_dropout0_epoch100.pth"
+
+# # Load model state dictionary
+# checkpoint = torch.load(checkpoint_path, map_location=device)
+# model.load_state_dict(checkpoint)  # Checkpoint is the state_dict directly
+
+
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 
 # Initialize the optimizer
@@ -212,7 +220,7 @@ best_val_model = None
 
 #best_pdet = 0.0
 #best_pdet_model = None
-
+#best_val_model = model
 best_pdet = {method: 0.0 for method in methods}
 best_pdet_model = {method: None for method in methods}
 

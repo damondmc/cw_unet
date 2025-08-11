@@ -72,7 +72,7 @@ if f0 == 1000:
 if f0 == 0:
     train_level = 22
 
-version = version = f'H1L1_a1.0b1.0_{f0}Hz_D{train_level}-{train_level}_T10_Tsft14400_ndata7000_noise7000_latent64_batch8_lr0.0001_512x64_MSELoss_dropout0'
+version = f'H1L1_a1b1_{f0}Hz_D{train_level}-{train_level}_T10_f512xTsft14400_ndata7000_noise7000_latent64_batch8_lr0.0001_512x64_MSELoss_dropout0'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 output_file = f"/scratch/kriles_root/kriles0/damoncht/unet_f/result/sky2000pts_depth_at_p90_{f0}Hz.npz"
 
