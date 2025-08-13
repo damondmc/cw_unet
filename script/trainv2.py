@@ -1,7 +1,7 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from utils import *
 from genData import *
-from model.unet import Attention_UNet
+from model.unetv2 import Attention_UNet
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 import time 
