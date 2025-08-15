@@ -395,7 +395,7 @@ for epoch in tqdm(range(num_epochs)):
     print(f"Learning rate: {current_lr:.3e}")
     print(f"Time used = {time.time()-t0:.2f} seconds")
     
-    if current_lr < lr / 2**3:
+    if current_lr < lr / 2**2:
         break
     
     if epoch % 100 == 0:

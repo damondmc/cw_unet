@@ -97,7 +97,6 @@ size = (freq_size, obsTime // Tsft)
 n_data = args.n_data  # modify the load data method in the loop to allow n > 1
 
 
-
 gpu_name = torch.cuda.get_device_name(0)
 print(f"GPU Name: {gpu_name}")
     
@@ -106,21 +105,21 @@ print(f"GPU Name: {gpu_name}")
 if f0 == 20:
     max_train_levels = [34]
     max_val_levels = [30, 34]
-    if size[1] > 100:
+    if size[1] > 90:
         max_train_levels = [40]
-        max_val_levels = [8, 24, 30, 35, 45]
+        max_val_levels = [30, 34]
 if f0 == 200:
     max_train_levels = [25]
-    max_val_levels = [8, 22.4, 23.13, 36.6]
+    max_val_levels = [25, 34]
 if f0 == 500:
-    max_train_levels = [22]
-    max_val_levels = [8, 18, 20.1, 35.6]
+    max_train_levels = [24]
+    max_val_levels = [24, 34]
 if f0 == 1000:
     max_train_levels = [19]
-    max_val_levels = [8, 17, 18.3, 33.4]
+    max_val_levels = [19, 34]
 if f0 == 0:
     max_train_levels = [22]
-    max_val_levels = [8, 17, 18.8, 35.6]
+    max_val_levels = [22, 34]
 
 
     
@@ -200,6 +199,12 @@ ns = target_datasets.shape[0]
 # Initialize the model
 dropout_prob = 0.0 # 0.1 
 model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
+
+
+def count_trainable_parameters(model):
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+print(f"Number of trainable parameters: {count_trainable_parameters(model)}")
 
 # checkpoint_path = f"{homedir}/trained_model/{f0}Hz/best_val_model_H1L1_a1b1_0Hz_D22-22_T10_f512xTsft14400_ndata10000_noise10000_latent128_batch8_lr0.0001_512x64_MSELoss_dropout0_epoch100.pth"
 
@@ -390,7 +395,7 @@ for epoch in tqdm(range(num_epochs)):
     print(f"Learning rate: {current_lr:.3e}")
     print(f"Time used = {time.time()-t0:.2f} seconds")
     
-    if current_lr < lr / 2**3:
+    if current_lr < lr / 2**2:
         break
     
     if epoch % 100 == 0:
