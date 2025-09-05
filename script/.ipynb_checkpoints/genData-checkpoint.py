@@ -138,7 +138,7 @@ def genSampleParam_skymap(f0min, f0max, f1min, f1max, nSky, nSample):
     # Generate nSample sets of non-sky parameters
     f0_arr = np.random.uniform(f0min, f0max, nSample)
     f1_arr = np.random.uniform(f1min, f1max, nSample)
-    phi_arr = np.random.uniform(0, 2 * np.pi, nSample)
+    phi_arr = np.random.uniform(0, 2*np.pi, nSample)
     psi_arr = np.random.uniform(-np.pi/4, np.pi/4, nSample)
     cosi_arr = np.random.uniform(-1, 1, nSample)
     
@@ -163,7 +163,7 @@ def genSampleParam_skymap(f0min, f0max, f1min, f1max, nSky, nSample):
     return params
 
 
-def simSignal(label, homedir, jobID, f0, f1, ra, dec, cosi, psi, phi, obsTime, startTime, det='H1', bandWidth=0.2, Tsft=7200, h0=1, Sn=0, WindowType="tukey", WindowParam=0.01):
+def simSignal(label, homedir, jobID, f0, f1, ra, dec, cosi, psi, phi, obsTime, startTime, det='H1', bandWidth=0.2, Tsft=14400, h0=1, Sn=0, WindowType="tukey", WindowParam=0.01):
     """
     Simulate a CW signal and return its spectrogram.
 
@@ -223,7 +223,7 @@ def simSignal(label, homedir, jobID, f0, f1, ra, dec, cosi, psi, phi, obsTime, s
     return [frequency, timestamps, fourier_data]
 
 # Assuming genGridParam, genSampleParam, and simSignal are pre-defined functions
-def generate_mock_cw_signals(label, params, obsTime=921600, num_cpus=8, band=0.5, Tsft=7200, h0=1, Sn=0, startTime=1368970000,
+def generate_mock_cw_signals(label, params, obsTime=921600, num_cpus=8, band=0.5, Tsft=14400, h0=1, Sn=0, startTime=1368970000,
                              nSample=800, homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/'):
     """
     Generate mock continuous wave signals based on input arguments.
@@ -296,27 +296,33 @@ def prepare_images_and_masks(signal_data1, signal_data2, num_per_h0, size, thres
     return clean_image_set, mask
 
 # Generate augmented image set
-def generate_augmented_set(random_offsets, clean_image_set, mask, freq_size, num_per_h0, size):
+def generate_augmented_set(random_offsets, clean_image_set, mask, freq_size, num_per_h0, size, freq_array):
     new_clean_image_set = np.zeros((random_offsets.size, freq_size, size[1], 4))
     new_mask = np.zeros((random_offsets.size, freq_size, size[1], 4), dtype=bool)
-
+    crop_freqs = []
+    
     for i in tqdm(range(random_offsets.size)):
         # Find all (y, x, c) coordinates where arr is True
         true_indices = np.argwhere(mask[i])  # Shape (N, 3), where N is the number of True values
         # Find closest freq-bin to top and bottom across all channels
-        bottom_freq = np.min(true_indices[:, 0])  # Smallest y (closest to top)
-        top_freq = np.max(true_indices[:, 0])  # Largest y (closest to bottom)
-        f_band = top_freq - bottom_freq
-        offset = freq_size - f_band # in (512, 64), ~ 1500 pixels have signals 
+        bottom_freq = np.min(true_indices[:, 0])  
+        top_freq = np.max(true_indices[:, 0])  
+        f_band = top_freq - bottom_freq # in (512, 64), ~ 800-1500 pixels have signals 
+        offset = freq_size - f_band 
         start_idx = bottom_freq-int(random_offsets[i]*offset)
+        end_idx     = start_idx + freq_size
 
-        
-        new_clean_image_set[i] = clean_image_set[i, start_idx:start_idx + freq_size, :, :]
-        new_mask[i] = mask[i, start_idx:start_idx + freq_size, :, :]
+        new_clean_image_set[i] = clean_image_set[i, start_idx:end_idx, :, :]
+        new_mask[i] = mask[i, start_idx:end_idx, :, :]
 
-    return new_clean_image_set, new_mask
+        # Save the cropped frequency array in Hz
+        crop_freqs.append(freq_array[start_idx:end_idx])
 
-def crop_signal_img(data_h1, data_l1, freq_size=256, threshold=100):
+    return new_clean_image_set, new_mask, crop_freqs
+
+
+
+def crop_signal_img(data_h1, data_l1, freq_size=512, threshold=50):
     h0_values = np.delete(np.unique(np.array(data_h1['params'])[:, -1]), 0)
     num_per_h0 = len(data_h1['0'])
     size = data_h1['0'][0]['fourier_data']['H1'].shape
@@ -326,12 +332,16 @@ def crop_signal_img(data_h1, data_l1, freq_size=256, threshold=100):
     random_offsets = np.random.uniform(0, 1, num_per_h0)
     
     # Generate augmented clean images and masks
-    new_clean_image_set, new_mask = generate_augmented_set(random_offsets, clean_image_set, mask, freq_size, num_per_h0, size)
+    freq_array = np.array(data_h1['0'][0]['frequency'])
 
-    # Save dataset
+    new_clean_image_set, new_mask, crop_freqs = generate_augmented_set(
+        random_offsets, clean_image_set, mask, freq_size, num_per_h0, size, freq_array
+    )
+
     dataset = {
         'signal_mask': new_mask,
-        'clean_image': new_clean_image_set
+        'clean_image': new_clean_image_set,
+        'crop_freqs': crop_freqs  # list of arrays, one per sample
     }
     
     return dataset

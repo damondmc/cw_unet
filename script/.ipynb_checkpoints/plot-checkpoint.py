@@ -6,7 +6,6 @@ import numpy as np
 from scipy.optimize import curve_fit
 import warnings
 
-
 # Matplotlib configuration
 plt.rcParams.update({
     'text.usetex': True,
@@ -126,41 +125,130 @@ def plot_spectrograms(title, timestamps, frequency, fourier_data_list, subtitles
     cbar.ax.tick_params(labelsize=16)
     return fig, axs
 
-# def plot_spectrograms(title, timestamps, frequency, fourier_data1):
-#     """
-#     Plots a single spectrogram.
+def plot_combined_spectrograms(title, timestamps_list, frequency_list, fourier_data_lists, subtitles, main_titles):
+    """
+    Plots three spectrograms for each of two frequencies in a 3x2 grid (three rows: noisy input, denoised output, pure signal;
+    two columns: different frequencies) with separate colorbars for each column. Zeroed columns are replaced with NaN for plotting,
+    rendered with a sharp grey color for visibility. Each subplot has its own x and y labels.
 
-#     Parameters:
-#     - title (str): Title of the spectrogram plot.
-#     - timestamps (ndarray): Array of timestamps corresponding to SFTs.
-#     - frequency (ndarray): Array of frequency values corresponding to the spectrogram's y-axis.
-#     - fourier_data1 (ndarray): 3D array representing the spectrogram data. 
-#       Shape: (frequency_bins, time_bins, 2) where last dimension represents real and imaginary parts.
+    Parameters:
+    - title (str): Overall title of the figure.
+    - timestamps_list (list of ndarray): List of two timestamp arrays (in seconds) for each frequency set.
+    - frequency_list (list of ndarray): List of two frequency arrays for each frequency set.
+    - fourier_data_lists (list of lists): List of two lists, each containing three 3D arrays (noisy input, denoised output, pure signal).
+      Shape of each array: (frequency_bins, time_bins, 2) where last dimension is [real, imag].
+    - subtitles (list of str): List of three subtitles for each spectrogram (Noisy Signal Input, Denoised Output, Pure Signal).
+    - main_titles (list of str): List of two titles for each frequency column (e.g., 'Spectrograms at 20 Hz', 'Spectrograms at 500 Hz').
 
-#     Returns:
-#     - fig (Figure): Matplotlib figure object for the plot.
-#     - axs (Axes): List of axes objects for further customization.
-#     """
-#     # Create the plot
-#     fig, axs = plt.subplots(1, 1, figsize=(16, 10))  # Single subplot
-#     axs = [axs]  # Ensure axs is a list for consistent handling
+    Returns:
+    - fig (Figure): Matplotlib figure object for the plot.
+    - axs (Axes): Array of axes objects for further customization.
+    """
+    # Validate inputs
+    if len(fourier_data_lists) != 2 or len(timestamps_list) != 2 or len(frequency_list) != 2 or len(main_titles) != 2:
+        raise ValueError("fourier_data_lists, timestamps_list, frequency_list, and main_titles must contain exactly 2 elements")
+    if len(subtitles) != 3:
+        raise ValueError("subtitles must contain exactly 3 elements")
+    
+    for i, (fourier_data_list, timestamps, frequency) in enumerate(zip(fourier_data_lists, timestamps_list, frequency_list)):
+        if len(fourier_data_list) != 3:
+            raise ValueError(f"fourier_data_lists[{i}] must contain exactly 3 arrays")
+        expected_shape = fourier_data_list[0].shape
+        if not all(data.shape == expected_shape for data in fourier_data_list):
+            raise ValueError(f"All arrays in fourier_data_lists[{i}] must have shape {expected_shape}")
+        if expected_shape[-1] != 2:
+            raise ValueError(f"Last dimension of fourier_data_lists[{i}] arrays must be 2 (real, imag), got {expected_shape[-1]}")
+        if len(timestamps) != expected_shape[1]:
+            raise ValueError(f"Length of timestamps[{i}] ({len(timestamps)}) must match time_bins ({expected_shape[1]})")
+        if len(frequency) != expected_shape[0]:
+            raise ValueError(f"Length of frequency[{i}] ({len(frequency)}) must match frequency_bins ({expected_shape[0]})")
 
-#     # Set labels for axes
-#     for ax in axs:
-#         ax.set(xlabel="SFT index", ylabel="Frequency index")
-    
-#     # Set the title of the plot
-#     axs[0].set_title(title)
-    
-#     # Plot the spectrogram
-#     c1 = axs[0].pcolormesh(
-#         timestamps,
-#         frequency,
-#         fourier_data1[:, :, 0] + fourier_data1[:, :, 1]**2,  # Sum of squares of components
-#         cmap="viridis",
-#         norm=colors.CenteredNorm(),  # Center color normalization
-#         shading='auto'
-#     )
-#     fig.colorbar(c1, ax=axs[0], orientation="horizontal", label="Power")  # Add colorbar for the plot
-    
-#     return fig, axs
+    # Debugging: Print shape and number of zero columns
+    for i, fourier_data_list in enumerate(fourier_data_lists):
+        print(f"Input shape for {main_titles[i]}: {fourier_data_list[0].shape}")
+        power_data = fourier_data_list[0][:, :, 0]**2 + fourier_data_list[0][:, :, 1]**2
+        zero_columns = np.all(power_data == 0, axis=0)
+        print(f"Number of zero columns in data ({main_titles[i]}): {np.sum(zero_columns)}")
+
+    # Create figure with 3x2 subplots
+    fig, axs = plt.subplots(3, 2, figsize=(12, 10), sharex='col',
+                            gridspec_kw={'width_ratios': [1, 1], 'height_ratios': [1, 1, 1], 'wspace': 0.15, 'hspace': 0.15})
+
+    # Process each frequency set
+    processed_powers = []
+    norms = []
+    for i, (fourier_data_list, timestamps) in enumerate(zip(fourier_data_lists, timestamps_list)):
+        # Convert timestamps to days
+        time_in_days = (timestamps - timestamps[0]) / 86400  # Convert seconds to days (86400 s/day)
+
+        # Copy data to avoid modifying originals
+        data, predictions, targets = [np.copy(d) for d in fourier_data_list]
+
+        # Identify zeroed columns in data
+        power_data = data[:, :, 0]**2 + data[:, :, 1]**2
+        zero_columns = np.all(power_data == 0, axis=0)
+
+        # Propagate zeroed columns to predictions and targets
+        predictions[:, zero_columns, :] = 0
+        targets[:, zero_columns, :] = 0
+
+        # Process each dataset to compute power
+        column_powers = []
+        for j, data in enumerate([data, predictions, targets]):
+            power = data[:, :, 0]**2 + data[:, :, 1]**2  # Power: real^2 + imag^2
+            power[power == 0] = np.nan
+            masked_power = np.ma.masked_invalid(power)
+            column_powers.append(masked_power)
+            nan_columns = np.any(np.isnan(power), axis=0)
+            print(f"Number of NaN columns in dataset {i},{j} ({main_titles[i]} - {subtitles[j]}): {np.sum(nan_columns)}")
+        processed_powers.append(column_powers)
+
+        # Compute vmin and vmax for this column
+        non_empty_powers = [power for power in column_powers if power.compressed().size > 0]
+        if not non_empty_powers:
+            raise ValueError(f"All power data for {main_titles[i]} is zero or NaN, cannot compute vmin/vmax")
+        #vmin = min(np.min(power.compressed()) for power in non_empty_powers)
+        #vmax = max(np.max(power.compressed()) for power in non_empty_powers)
+        #print(f"{main_titles[i]} - vmin: {vmin}, vmax: {vmax}")
+        vmin, vmax = 0, 1  # Override as in original code
+        #norms.append(colors.Normalize(vmin=vmin, vmax=vmax))
+
+    # Create colormap
+    cmap = plt.get_cmap('magma').copy()
+    cmap.set_bad(color='grey')
+    norm = norm = colors.Normalize(vmin=vmin, vmax=vmax)
+    # Plot spectrograms
+    for i, (fourier_data_list, frequency, timestamps, main_title) in enumerate(zip(fourier_data_lists, frequency_list, timestamps_list, main_titles)):
+        time_in_days = (timestamps - timestamps[0]) / 86400
+        for j, (masked_power, subtitle) in enumerate(zip(processed_powers[i], subtitles)):
+            ax = axs[j, i]
+            c = ax.pcolormesh(
+                time_in_days,
+                frequency,
+                masked_power,
+                cmap=cmap,
+                norm=norm,
+                shading='auto'
+            )
+                
+            if i==0 and j == 1:
+                ax.set_ylabel(r'Frequency (Hz)', fontsize=18, color='k' , labelpad=2)
+            if j == 2:
+                ax.set_xlabel(r'Time (day)', fontsize=18, color='k' , labelpad=1)
+            ax.set_title(f"{subtitle}", fontsize=22, loc='right', y=0, color='white')
+            ax.tick_params(axis='both', which='major', labelsize=16, colors='k')
+
+    # Add ONE colorbar spanning all 6 axes
+    cbar = fig.colorbar(
+        c,
+        ax=axs.ravel().tolist(),   # flatten (3,2) grid to list
+        orientation='horizontal',
+        pad=0.08,
+        shrink=0.5
+    )
+
+    cbar.set_label(r'Power', fontsize=18)
+    cbar.ax.tick_params(labelsize=16)
+
+    fig.suptitle(title, fontsize=22, color='k', y=0.92)
+    return fig, axs

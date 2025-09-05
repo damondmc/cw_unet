@@ -71,7 +71,7 @@ if args.v:
 
 n = int(nSample//neach)
 
-for seed in range(10, 15):
+for seed in range(n):
     p = params[seed*neach:(seed+1)*neach]
     _d1, _d2 = generate_mock_cw_signals(label=label, params=p, num_cpus=num_cpus, obsTime=obsTime, Tsft=Tsft, homedir=homedir+'tmp/')
     signal_dataset = crop_signal_img(_d1, _d2, freq_size=freq_size, threshold = 50)

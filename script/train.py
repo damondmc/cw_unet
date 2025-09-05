@@ -79,7 +79,6 @@ np.random.seed(0)
 torch.manual_seed(0)
 
 # Use arguments from argparse
-#depth = args.depth
 f0 = args.f0
 det = args.det
 Tsft = args.Tsft
@@ -107,23 +106,21 @@ if f0 == 20:
     max_val_levels = [30, 34]
     if size[1] > 90:
         max_train_levels = [40]
-        max_val_levels = [30, 34]
+        max_val_levels = [30, 40]
 if f0 == 200:
-    max_train_levels = [25]
-    max_val_levels = [25, 34]
-if f0 == 500:
     max_train_levels = [24]
     max_val_levels = [24, 34]
+if f0 == 500:
+    max_train_levels = [21.5]
+    max_val_levels = [21.5, 34]
 if f0 == 1000:
     max_train_levels = [19]
     max_val_levels = [19, 34]
 if f0 == 0:
-    max_train_levels = [22]
-    max_val_levels = [22, 34]
-
-
+    max_train_levels = [21]
+    max_val_levels = [21, 34]
     
-label = 'a{}b{}_{}Hz_D{}-{}_T{}_f{}xTsft{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), freq_size, Tsft, n_data*1000, noise_train, latent_channels, batch_size, lr)
+label = 'fa{}b{}_{}Hz_D{}-{}_T{}_f{}xTsft{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), freq_size, Tsft, n_data*1000, noise_train, latent_channels, batch_size, lr)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Batch size: {batch_size}")
@@ -141,13 +138,12 @@ print(f"Beta (noise): {beta}")
 print(f"Learning rate: {lr}")
 
 # Initialize dictionaries to store pdet by noise level and method
-#methods = ['mean', 'mean_sq', 'kl_one', 'kl_random']
 methods = ['mean_sq']
 train_pdet = {method: {noise_level: [] for noise_level in max_train_levels} for method in methods}
 val_pdet = {method: {noise_level: [] for noise_level in max_val_levels} for method in methods}
 
 
-filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
+filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed1.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
 targets = np.load(filename, allow_pickle=True)['clean_image']
 masks = new_mask(normalize(targets), k=1)
 data = []
@@ -176,7 +172,6 @@ for i in range(noise.shape[0]):
     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
 noise = normalize(noise)
 noise_data = load_noise_dataset(noise)
-
 val_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
 # load clean signal data 
@@ -395,7 +390,7 @@ for epoch in tqdm(range(num_epochs)):
     print(f"Learning rate: {current_lr:.3e}")
     print(f"Time used = {time.time()-t0:.2f} seconds")
     
-    if current_lr < lr / 2**2:
+    if current_lr <= lr / 2**2:
         break
     
     if epoch % 100 == 0:

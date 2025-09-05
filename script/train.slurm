@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=gpu_500Hz
-#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/500Hz_10d_n10_T14400_l128_gpu.out
-#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/500Hz_10d_n10_T14400_l128_gpu.err
-#SBATCH --time=7-00:00:00
+#SBATCH --job-name=500Hz
+#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/f500Hz_10d_n10_T14400_l128.out
+#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/f500Hz_10d_n10_T14400_l128.err
+#SBATCH --time=5-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
