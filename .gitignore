@@ -8,3 +8,4 @@ script/archive
 script/intermedia_outputs
 script/nb/20Hz_cross.ipynb
 result/archive
+.gitignore
