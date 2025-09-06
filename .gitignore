@@ -4,3 +4,7 @@ log/
 trained_model/
 __pycache__/
 .ipynb_checkpoints/
+script/archive
+script/intermedia_outputs
+script/nb/20Hz_cross.ipynb
+result/archive

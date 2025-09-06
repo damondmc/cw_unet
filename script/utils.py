@@ -10,7 +10,6 @@ from scipy import stats
 from PIL import Image
 from scipy.stats import entropy
 from multiprocessing import Pool, cpu_count
-
 # Detect if CUDA is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

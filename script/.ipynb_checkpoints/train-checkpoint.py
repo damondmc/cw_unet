@@ -79,7 +79,6 @@ np.random.seed(0)
 torch.manual_seed(0)
 
 # Use arguments from argparse
-#depth = args.depth
 f0 = args.f0
 det = args.det
 Tsft = args.Tsft
@@ -107,23 +106,21 @@ if f0 == 20:
     max_val_levels = [30, 34]
     if size[1] > 90:
         max_train_levels = [40]
-        max_val_levels = [30, 34]
+        max_val_levels = [30, 40]
 if f0 == 200:
-    max_train_levels = [25]
-    max_val_levels = [25, 34]
-if f0 == 500:
     max_train_levels = [24]
     max_val_levels = [24, 34]
+if f0 == 500:
+    max_train_levels = [21.5]
+    max_val_levels = [21.5, 34]
 if f0 == 1000:
     max_train_levels = [19]
     max_val_levels = [19, 34]
 if f0 == 0:
-    max_train_levels = [22]
-    max_val_levels = [22, 34]
-
-
+    max_train_levels = [21]
+    max_val_levels = [21, 34]
     
-label = 'a{}b{}_{}Hz_D{}-{}_T{}_f{}xTsft{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), freq_size, Tsft, n_data*1000, noise_train, latent_channels, batch_size, lr)
+label = 'fa{}b{}_{}Hz_D{}-{}_T{}_f{}xTsft{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), freq_size, Tsft, n_data*1000, noise_train, latent_channels, batch_size, lr)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
 print(f"Batch size: {batch_size}")
@@ -141,13 +138,12 @@ print(f"Beta (noise): {beta}")
 print(f"Learning rate: {lr}")
 
 # Initialize dictionaries to store pdet by noise level and method
-#methods = ['mean', 'mean_sq', 'kl_one', 'kl_random']
 methods = ['mean_sq']
 train_pdet = {method: {noise_level: [] for noise_level in max_train_levels} for method in methods}
 val_pdet = {method: {noise_level: [] for noise_level in max_val_levels} for method in methods}
 
 
-filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_seed0.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
+filename = '{6}/data/validation/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n{5}_idx1.npz'.format(f0, det, size[0], size[1], Tsft, 1000, homedir)
 targets = np.load(filename, allow_pickle=True)['clean_image']
 masks = new_mask(normalize(targets), k=1)
 data = []
@@ -176,15 +172,14 @@ for i in range(noise.shape[0]):
     noise[i] = simNoise(sqrtSn=1, Tsft=Tsft, size=size, ndet=2, norm=False)
 noise = normalize(noise)
 noise_data = load_noise_dataset(noise)
-
 val_loader = make_data_loader([data, noise_data], batch_size=batch_size)
 
 # load clean signal data 
 target_datasets = []
 mask_datasets = []
-# Load n datasets based on different seeds
+# Load n datasets based on different idx
 for i in range(n_data):  # Iterate over n datasets
-    filename = '{6}/data/{0}Hz/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n1000_seed{5}.npz'.format(f0, det, size[0], size[1], Tsft, i, homedir)
+    filename = '{6}/data/{0}Hz/{0}Hz_{1}_{2}x{3}_{4}s_4c_traindata_n1000_idx{5}.npz'.format(f0, det, size[0], size[1], Tsft, i, homedir)
     print("Using {}".format(filename))
     targets = np.load(filename, allow_pickle=True)['clean_image']
     masks = new_mask(normalize(targets), k=1)
@@ -199,19 +194,12 @@ ns = target_datasets.shape[0]
 # Initialize the model
 dropout_prob = 0.0 # 0.1 
 model = Attention_UNet(in_channels=4, out_channels=4, latent_channels=latent_channels, dropout_prob=dropout_prob).to(device)
-
+print(model)
 
 def count_trainable_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
     
 print(f"Number of trainable parameters: {count_trainable_parameters(model)}")
-
-# checkpoint_path = f"{homedir}/trained_model/{f0}Hz/best_val_model_H1L1_a1b1_0Hz_D22-22_T10_f512xTsft14400_ndata10000_noise10000_latent128_batch8_lr0.0001_512x64_MSELoss_dropout0_epoch100.pth"
-
-# # Load model state dictionary
-# checkpoint = torch.load(checkpoint_path, map_location=device)
-# model.load_state_dict(checkpoint)  # Checkpoint is the state_dict directly
-
 
 criterion = torch.nn.MSELoss(reduction='none')  # Default loss function
 
@@ -223,22 +211,11 @@ scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=70)
 best_val_loss = float('inf')
 best_val_model = None
 
-#best_pdet = 0.0
-#best_pdet_model = None
-#best_val_model = model
 best_pdet = {method: 0.0 for method in methods}
 best_pdet_model = {method: None for method in methods}
 
-
-train_losses = []
-train_mse_signal = []
-train_mse_noise = []
-
-val_losses = []
-val_mse_signal = []
-val_mse_noise = []
-
-print(model)
+train_losses, train_mse_signal, train_mse_noise = [], [], []
+val_losses val_mse_signal, val_mse_noise = [], [], []
 
 for epoch in tqdm(range(num_epochs)):   
     # generate noise 
@@ -395,7 +372,7 @@ for epoch in tqdm(range(num_epochs)):
     print(f"Learning rate: {current_lr:.3e}")
     print(f"Time used = {time.time()-t0:.2f} seconds")
     
-    if current_lr < lr / 2**2:
+    if current_lr <= lr / 2**2:
         break
     
     if epoch % 100 == 0:

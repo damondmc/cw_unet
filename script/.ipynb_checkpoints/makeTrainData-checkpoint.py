@@ -71,15 +71,15 @@ if args.v:
 
 n = int(nSample//neach)
 
-for seed in range(n):
-    p = params[seed*neach:(seed+1)*neach]
+for idx in range(n):
+    p = params[idx*neach:(idx+1)*neach]
     _d1, _d2 = generate_mock_cw_signals(label=label, params=p, num_cpus=num_cpus, obsTime=obsTime, Tsft=Tsft, homedir=homedir+'tmp/')
     signal_dataset = crop_signal_img(_d1, _d2, freq_size=freq_size, threshold = 50)
     
     if args.v:
-        filename = "{4}data/validation/{0}Hz_{1}_traindata_n{2}_seed{3}.npz".format(f0, version, neach, seed, homedir)
+        filename = "{4}data/validation/{0}Hz_{1}_traindata_n{2}_idx{3}.npz".format(f0, version, neach, idx, homedir)
     else:
-        filename = "{4}data/{0}Hz/{0}Hz_{1}_traindata_n{2}_seed{3}.npz".format(f0, version, neach, seed, homedir)
+        filename = "{4}data/{0}Hz/{0}Hz_{1}_traindata_n{2}_idx{3}.npz".format(f0, version, neach, idx, homedir)
     
     np.savez(filename, **signal_dataset, f0=f0, params=p)
     print("Saved to {}".format(filename)) 

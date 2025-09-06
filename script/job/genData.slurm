@@ -14,4 +14,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python makeTrainData.py --num_cpus 20 --f0 500 --Tsft 14400 --freq_size 512 --obsTime 921600 --v
+python /scratch/kriles_root/kriles0/damoncht/unet_f/script/makeTrainData.py --num_cpus 20 --f0 500 --Tsft 14400 --freq_size 512 --obsTime 921600 --v

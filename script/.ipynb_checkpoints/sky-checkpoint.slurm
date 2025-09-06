@@ -15,4 +15,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python -u skymapv2.py --f0 500
+python -u skymap.py --f0 500

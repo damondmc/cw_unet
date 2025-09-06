@@ -1,4 +1,7 @@
 import matplotlib.pyplot as plt
+import matplotlib
+import matplotlib.mlab as mlab
+from matplotlib.ticker import MultipleLocator
 import matplotlib.colors as colors
 from scipy import stats
 from PIL import Image
