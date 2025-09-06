@@ -15,4 +15,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python -u train.py --f0 500 --n_data 10 --n_noise 10 --freq_size 512 --Tsft 14400 --latent_channels 128 --lr 0.0001 --obsTime 921600
+python -u /scratch/kriles_root/kriles0/damoncht/unet_f/train.py --f0 500 --n_data 10 --n_noise 10 --freq_size 512 --Tsft 14400 --latent_channels 128 --lr 0.0001 --obsTime 921600
