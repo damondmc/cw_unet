@@ -10,9 +10,77 @@ from scipy import stats
 from PIL import Image
 from scipy.stats import entropy
 from multiprocessing import Pool, cpu_count
-
 # Detect if CUDA is available and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def binomialError(y, n):
+    err =  np.sqrt(y*(1.-y)/n)
+    err[err==0] = 1./n
+    return err
+
+# Linear interpolation for decreasing y
+def interpolate_x(y_target, x, y):
+    return np.interp(y_target, y[::-1], x[::-1])
+
+# Estimate second derivative locally
+def estimate_second_derivative(x, y, idx):
+    h = np.diff(x)
+    h_avg = np.mean(h) if not np.allclose(h, h[0]) else h[0]
+    # Use points around the interpolation interval (idx-1, idx)
+    if idx >= 1 and idx < len(y) - 1:
+        # Central difference at x[idx-1] or x[idx]
+        deriv2 = (y[idx+1] - 2*y[idx] + y[idx-1]) / (h_avg**2)
+        return abs(deriv2)
+    elif idx == 0 and len(y) >= 3:
+        # Forward difference at x[0]
+        deriv2 = (y[2] - 2*y[1] + y[0]) / (h_avg**2)
+        return abs(deriv2)
+    elif idx == len(y) - 1 and len(y) >= 3:
+        # Backward difference at x[-1]
+        deriv2 = (y[-1] - 2*y[-2] + y[-3]) / (h_avg**2)
+        return abs(deriv2)
+    return 1.0  # Fallback if insufficient points
+
+# Error estimation
+def interpolation_error(y_target, x, y, dy):
+    idx = np.searchsorted(y[::-1], y_target, side='right')
+    if idx == 0 or idx == len(y):
+        raise ValueError("y_target is outside the range of y-values")
+    # Adjust indices for decreasing y
+    idx = len(y) - idx  # Convert to original array index
+    x0, x1 = x[idx-1], x[idx]
+    y0, y1 = y[idx-1], y[idx]
+    dy0, dy1 = dy[idx-1], dy[idx]
+    h = x1 - x0
+    
+    # Interpolated x
+    x_interp = np.interp(y_target, y[::-1], x[::-1])
+    
+    # Interpolation error
+    second_derivative = estimate_second_derivative(x, y, idx)
+    y_interp_error = (1/8) * h**2 * second_derivative
+    
+    # Slope of the interpolated line
+    slope = (y1 - y0) / (x1 - x0)
+    
+    # Propagate dy uncertainty to x
+    t = (y_target - y0) / (y1 - y0)
+    y_uncertainty = np.sqrt((1-t)**2 * dy0**2 + t**2 * dy1**2)
+    
+    # Total x-error
+    x_error = np.sqrt((y_interp_error / abs(slope))**2 + (y_uncertainty / abs(slope))**2)
+    
+    return x_interp, x_error
+
+
+# Function to apply duty factor (set random columns to zero)
+def apply_duty_factor(data, duty_factor, size, zero_cols=None):
+    num_zero_cols = int(size[1] * (1 - duty_factor))  # Number of columns to set to zero
+    if zero_cols is None:
+        zero_cols = np.random.choice(size[1], size=num_zero_cols, replace=False)  # Randomly select columns
+    for i in range(data.shape[0]):  # Loop over each sample
+        data[i, :, zero_cols, :] = 0  # Set selected columns to zero
+    return data
 
 # Define compute_kl_divergence if not already defined
 def compute_kl_divergence(p, q):
@@ -37,6 +105,7 @@ def compute_kl_divergence(p, q):
     
     # Compute KL divergence using scipy.stats.entropy
     return entropy(p_flat, q_flat)
+    
     
 def compute_detection_statistic(images, method= 'mean'):
     """
@@ -72,7 +141,7 @@ def compute_detection_statistic(images, method= 'mean'):
     
     elif method == 'kl_random':
         # Generate uniform random distribution in [-1, 1]
-        ref_dist = np.random.uniform(-1, 1, images_np[0].shape)
+        ref_dist = np.random.uniform(0, 1, images_np[0].shape)
         return np.array([compute_kl_divergence(img, ref_dist) for img in images_np])
     
 def compute_threshold_from_pfa(noise_det, pfa=0.01):
@@ -408,4 +477,11 @@ def make_data_loader(dataset, batch_size=8, shuffle=True):
     data = ConcatDataset(dataset)
     data_loader = DataLoader(data, batch_size=batch_size, shuffle=shuffle)
 
+    return data_loader
+
+# Function to load dataset
+def load_dataset(images, batch_size=8, shuffle=True):
+    images_tensor = torch.tensor(images, dtype=torch.float32).permute(0, 3, 1, 2)
+    dataset = TensorDataset(images_tensor)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
     return data_loader

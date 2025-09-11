@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=500Hz
-#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/f500Hz_10d_n10_T14400_l128.out
-#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/f500Hz_10d_n10_T14400_l128.err
+#SBATCH --job-name=1Hz
+#SBATCH --output=/scratch/kriles_root/kriles0/damoncht/unet_f/log/1Hz_10d_n7_T14400.out
+#SBATCH --error=/scratch/kriles_root/kriles0/damoncht/unet_f/log/1Hz_10d_n7_T14400.err
 #SBATCH --time=5-00:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
@@ -15,4 +15,4 @@
 
 source /home/damoncht/.bashrc
 source activate ml
-python -u /scratch/kriles_root/kriles0/damoncht/unet_f/train.py --f0 500 --n_data 10 --n_noise 10 --freq_size 512 --Tsft 14400 --latent_channels 128 --lr 0.0001 --obsTime 921600
+python -u /scratch/kriles_root/kriles0/damoncht/unet_f/train.py --f0 1 --n_data 7 --n_noise 7 --freq_size 512 --Tsft 14400 --latent_channels 64 --lr 0.0001 --obsTime 1843200

@@ -38,7 +38,7 @@ size = (freq_size, obsTime // Tsft)
     
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/' 
 
-nSample = 15000
+nSample = 10000
 neach = 1000
 
 f1min = -1e-10 
@@ -61,6 +61,9 @@ version = '{}_{}x{}_{}s_4c'.format(det, size[0], size[1], Tsft)
 # Generate parameters based on the chosen method
 if f0 == 0:
     params = genSampleParam(20, 1000, f1min, f1max, nSample)
+
+elif f0 == 1:
+    params = genSampleParam(20, 500, f1min, f1max, nSample)
 else:
     params = genSampleParam(f0, f0, f1min, f1max, nSample)
 

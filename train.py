@@ -119,7 +119,10 @@ if f0 == 1000:
 if f0 == 0:
     max_train_levels = [21]
     max_val_levels = [21, 34]
-    
+if f0 == 1:
+    max_train_levels = [23]
+    max_val_levels = [23, 34]
+     
 label = 'fa{}b{}_{}Hz_D{}-{}_T{}_f{}xTsft{}_ndata{}_noise{}_latent{}_batch{}_lr{}'.format(alpha, beta, f0, int(max_train_levels[0]), int(max_train_levels[0]), int(obsTime//86400), freq_size, Tsft, n_data*1000, noise_train, latent_channels, batch_size, lr)
 version = '{}_{}_{}x{}_MSELoss_dropout0'.format(det, label, size[0], size[1])
 
@@ -215,7 +218,7 @@ best_pdet = {method: 0.0 for method in methods}
 best_pdet_model = {method: None for method in methods}
 
 train_losses, train_mse_signal, train_mse_noise = [], [], []
-val_losses val_mse_signal, val_mse_noise = [], [], []
+val_losses, val_mse_signal, val_mse_noise = [], [], []
 
 for epoch in tqdm(range(num_epochs)):   
     # generate noise 
