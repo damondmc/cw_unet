@@ -1,6 +1,6 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from tqdm import tqdm
-from utils import *
+from tools import *
 from genData import *
 import json
 import argparse
@@ -38,7 +38,7 @@ size = (freq_size, obsTime // Tsft)
     
 homedir = '/scratch/kriles_root/kriles0/damoncht/unet_f/' 
 
-nSample = 8000
+nSample = 10000
 neach = 1000
 
 f1min = -1e-10 
@@ -61,6 +61,9 @@ version = '{}_{}x{}_{}s_4c'.format(det, size[0], size[1], Tsft)
 # Generate parameters based on the chosen method
 if f0 == 0:
     params = genSampleParam(20, 1000, f1min, f1max, nSample)
+
+elif f0 == 1:
+    params = genSampleParam(20, 500, f1min, f1max, nSample)
 else:
     params = genSampleParam(f0, f0, f1min, f1max, nSample)
 
@@ -71,15 +74,15 @@ if args.v:
 
 n = int(nSample//neach)
 
-for seed in range(6,8):
-    p = params[seed*neach:(seed+1)*neach]
+for idx in range(n):
+    p = params[idx*neach:(idx+1)*neach]
     _d1, _d2 = generate_mock_cw_signals(label=label, params=p, num_cpus=num_cpus, obsTime=obsTime, Tsft=Tsft, homedir=homedir+'tmp/')
     signal_dataset = crop_signal_img(_d1, _d2, freq_size=freq_size, threshold = 50)
     
     if args.v:
-        filename = "data/validation/{}Hz_{}_traindata_n{}_seed{}.npz".format(f0, version, neach, seed)
+        filename = "{4}data/validation/{0}Hz_{1}_traindata_n{2}_idx{3}.npz".format(f0, version, neach, idx, homedir)
     else:
-        filename = "data/{0}Hz/{0}Hz_{1}_traindata_n{2}_seed{3}.npz".format(f0, version, neach, seed)
+        filename = "{4}data/{0}Hz/{0}Hz_{1}_traindata_n{2}_idx{3}.npz".format(f0, version, neach, idx, homedir)
     
     np.savez(filename, **signal_dataset, f0=f0, params=p)
     print("Saved to {}".format(filename)) 

@@ -20,6 +20,65 @@ plt.rcParams.update({
     'mathtext.fontset': 'cm'
 })
 
+def binomialError(y, n):
+    err =  np.sqrt(y*(1.-y)/n)
+    err[err==0] = 1./n
+    return err
+
+# Linear interpolation for decreasing y
+def interpolate_x(y_target, x, y):
+    return np.interp(y_target, y[::-1], x[::-1])
+
+# Estimate second derivative locally
+def estimate_second_derivative(x, y, idx):
+    h = np.diff(x)
+    h_avg = np.mean(h) if not np.allclose(h, h[0]) else h[0]
+    # Use points around the interpolation interval (idx-1, idx)
+    if idx >= 1 and idx < len(y) - 1:
+        # Central difference at x[idx-1] or x[idx]
+        deriv2 = (y[idx+1] - 2*y[idx] + y[idx-1]) / (h_avg**2)
+        return abs(deriv2)
+    elif idx == 0 and len(y) >= 3:
+        # Forward difference at x[0]
+        deriv2 = (y[2] - 2*y[1] + y[0]) / (h_avg**2)
+        return abs(deriv2)
+    elif idx == len(y) - 1 and len(y) >= 3:
+        # Backward difference at x[-1]
+        deriv2 = (y[-1] - 2*y[-2] + y[-3]) / (h_avg**2)
+        return abs(deriv2)
+    return 1.0  # Fallback if insufficient points
+
+# Error estimation
+def interpolation_error(y_target, x, y, dy):
+    idx = np.searchsorted(y[::-1], y_target, side='right')
+    if idx == 0 or idx == len(y):
+        raise ValueError("y_target is outside the range of y-values")
+    # Adjust indices for decreasing y
+    idx = len(y) - idx  # Convert to original array index
+    x0, x1 = x[idx-1], x[idx]
+    y0, y1 = y[idx-1], y[idx]
+    dy0, dy1 = dy[idx-1], dy[idx]
+    h = x1 - x0
+    
+    # Interpolated x
+    x_interp = np.interp(y_target, y[::-1], x[::-1])
+    
+    # Interpolation error
+    second_derivative = estimate_second_derivative(x, y, idx)
+    y_interp_error = (1/8) * h**2 * second_derivative
+    
+    # Slope of the interpolated line
+    slope = (y1 - y0) / (x1 - x0)
+    
+    # Propagate dy uncertainty to x
+    t = (y_target - y0) / (y1 - y0)
+    y_uncertainty = np.sqrt((1-t)**2 * dy0**2 + t**2 * dy1**2)
+    
+    # Total x-error
+    x_error = np.sqrt((y_interp_error / abs(slope))**2 + (y_uncertainty / abs(slope))**2)
+    
+    return x_interp, x_error
+
 def plot_spectrograms(title, timestamps, frequency, fourier_data_list, subtitles):
     """
     Plots three spectrograms (power: real^2 + imag^2) in a single figure with shared x-axis and a single colorbar,

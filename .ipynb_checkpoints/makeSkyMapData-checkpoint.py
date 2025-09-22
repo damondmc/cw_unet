@@ -1,6 +1,6 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from tqdm import tqdm
-from utils import *
+from tools import *
 from genData import *
 import json
 import argparse
@@ -52,18 +52,20 @@ version = '{}_{}x{}_{}s_4c'.format(det, size[0], size[1], Tsft)
 # Generate parameters based on the chosen method
 if f0 == 0:
     params = genSampleParam_skymap(20, 1000, f1min, f1max, nSky, nSample)
+elif f0 == 1:
+    params = genSampleParam_skymap(20, 500, f1min, f1max, nSky, nSample)
 else:
     params = genSampleParam_skymap(f0, f0, f1min, f1max, nSky, nSample)
 
 batch_size = 8
 n = int(nSample*nSky//neach)
 
-for seed in range(400):
-    p = params[seed*neach:(seed+1)*neach]
+for idx in range(251, 400):
+    p = params[idx*neach:(idx+1)*neach]
     _d1, _d2 = generate_mock_cw_signals(label=label, params=p, num_cpus=num_cpus, obsTime=obsTime, Tsft=Tsft, homedir=homedir+'tmp/')
     signal_dataset = crop_signal_img(_d1, _d2, freq_size=freq_size, threshold = 50)
     
-    filename = "data/validation/skymap_{}Hz_{}_traindata_n{}_seed{}.npz".format(f0, version, neach, seed) 
+    filename = homedir+"data/validation/skymap_{}Hz_{}_traindata_n{}_idx{}.npz".format(f0, version, neach, idx) 
     np.savez(filename, **signal_dataset, f0=f0, params=p)
     print("Saved to {}".format(filename)) 
     

@@ -2,7 +2,7 @@
 import numpy as np
 from tqdm import tqdm
 import torch
-from utils import *
+from tools import *
 from genData import *
 from model.unet import Attention_UNet
 import argparse

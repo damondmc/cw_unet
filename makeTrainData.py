@@ -1,6 +1,6 @@
 #!/home/damoncht/.conda/envs/ml/bin/python
 from tqdm import tqdm
-from utils import *
+from tools import *
 from genData import *
 import json
 import argparse
